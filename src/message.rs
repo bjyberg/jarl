@@ -16,6 +16,10 @@ pub enum Message {
         filename: PathBuf,
         location: Location,
     },
+    AnyIsNa {
+        filename: PathBuf,
+        location: Location,
+    },
 }
 
 impl Message {
@@ -23,6 +27,7 @@ impl Message {
     pub fn code(&self) -> &'static str {
         match self {
             Message::TrueFalseSymbol { filename: _, location: _ } => "T-F-symbols",
+            Message::AnyIsNa { filename: _, location: _ } => "any-na",
         }
     }
 
@@ -30,6 +35,7 @@ impl Message {
     pub fn body(&self) -> &'static str {
         match self {
             Message::TrueFalseSymbol { filename: _, location: _ } => "`T` and `F` can be confused with variable names. Spell `TRUE` and `FALSE` entirely instead.",
+            Message::AnyIsNa { filename: _, location: _ } => "`any(is.na(...))` is inefficient. Use `anyNA(...)` instead.",
         }
     }
 }
@@ -37,7 +43,8 @@ impl Message {
 impl fmt::Display for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Message::TrueFalseSymbol { filename, location } => write!(
+            Message::AnyIsNa { filename, location }
+            | Message::TrueFalseSymbol { filename, location } => write!(
                 f,
                 "{} [{}:{}] {} {}",
                 filename.to_string_lossy().white().bold(),
