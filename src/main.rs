@@ -18,9 +18,8 @@ fn main() {
             let contents = fs::read_to_string(Path::new(file)).expect("couldn't read file");
             let parsed = air_r_parser::parse(contents.as_str(), parser_options);
             let out = &parsed.syntax::<RLanguage>();
-            let loc_new_lines = find_new_lines(&out);
-            let msg = check_ast(&out, loc_new_lines, file);
-            msg
+            let loc_new_lines = find_new_lines(out);
+            check_ast(out, loc_new_lines, file)
         })
         .flatten()
         .collect();
@@ -36,7 +35,7 @@ fn check_ast(ast: &RSyntaxNode, loc_new_lines: Vec<usize>, file: &str) -> Vec<Me
     let mut messages: Vec<Message> = vec![];
     // println!("{:?}", ast.text());
     // println!("{:?}", ast.kind());
-    let _ = match ast.kind() {
+    match ast.kind() {
         RSyntaxKind::R_EXPRESSION_LIST => {
             let _ = ast
                 .children()
@@ -46,31 +45,29 @@ fn check_ast(ast: &RSyntaxNode, loc_new_lines: Vec<usize>, file: &str) -> Vec<Me
         RSyntaxKind::R_CALL => {
             let call = ast.first_child().unwrap().text_trimmed();
             if call == "any" {
-                let args = get_args(&ast);
-                match args {
-                    Some(x) => {
-                        let first_arg = x.first_child().unwrap().first_child().unwrap();
-                        if first_arg.text_trimmed() == "is.na"
-                            && first_arg.kind() == RSyntaxKind::R_IDENTIFIER
-                        {
-                            let (row, column) = find_row_col(ast, &loc_new_lines);
-                            messages.push(Message::AnyIsNa {
-                                filename: file.into(),
-                                location: Location { row, column },
-                            });
-                        }
+                let args = get_args(ast);
+                if let Some(x) = args {
+                    let first_arg = x.first_child().unwrap().first_child().unwrap();
+                    if first_arg.text_trimmed() == "is.na"
+                        && first_arg.kind() == RSyntaxKind::R_IDENTIFIER
+                    {
+                        let (row, column) = find_row_col(ast, &loc_new_lines);
+                        messages.push(Message::AnyIsNa {
+                            filename: file.into(),
+                            location: Location { row, column },
+                        });
                     }
-                    None => (),
                 }
             }
         }
         RSyntaxKind::R_CALL_ARGUMENTS
         | RSyntaxKind::R_ARGUMENT_LIST
         | RSyntaxKind::R_ARGUMENT
-        | RSyntaxKind::R_ROOT => match &ast.first_child() {
-            Some(x) => messages.extend(check_ast(x, loc_new_lines, file)),
-            None => (),
-        },
+        | RSyntaxKind::R_ROOT => {
+            if let Some(x) = &ast.first_child() {
+                messages.extend(check_ast(x, loc_new_lines, file))
+            }
+        }
         RSyntaxKind::R_IDENTIFIER => {
             if ast.text_trimmed() == "T" || ast.text_trimmed() == "F" {
                 let (row, column) = find_row_col(ast, &loc_new_lines);
@@ -85,8 +82,6 @@ fn check_ast(ast: &RSyntaxNode, loc_new_lines: Vec<usize>, file: &str) -> Vec<Me
             let has_sibling = ns.is_some();
             if has_sibling {
                 messages.extend(check_ast(&ns.unwrap(), loc_new_lines, file));
-            } else {
-                ()
             }
         }
         _ => match &ast.first_child() {
@@ -96,8 +91,6 @@ fn check_ast(ast: &RSyntaxNode, loc_new_lines: Vec<usize>, file: &str) -> Vec<Me
                 let has_sibling = ns.is_some();
                 if has_sibling {
                     messages.extend(check_ast(&ns.unwrap(), loc_new_lines, file));
-                } else {
-                    ()
                 }
             }
         },
@@ -115,7 +108,7 @@ fn find_new_lines(ast: &RSyntaxNode) -> Vec<usize> {
         .collect::<Vec<usize>>()
 }
 
-fn find_row_col(ast: &RSyntaxNode, loc_new_lines: &Vec<usize>) -> (usize, usize) {
+fn find_row_col(ast: &RSyntaxNode, loc_new_lines: &[usize]) -> (usize, usize) {
     let locs = ast.text_range();
     let start: usize = locs.start().into();
     let new_lines_before = loc_new_lines
@@ -125,7 +118,7 @@ fn find_row_col(ast: &RSyntaxNode, loc_new_lines: &Vec<usize>) -> (usize, usize)
     let n_new_lines = new_lines_before.len();
     let last_new_line = match new_lines_before.last() {
         Some(x) => **x,
-        None => 0 as usize,
+        None => 0_usize,
     };
 
     let row = start - last_new_line + 1;
