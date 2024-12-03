@@ -55,6 +55,14 @@ fn check_ast(ast: &RSyntaxNode, loc_new_lines: &Vec<usize>, file: &str) -> Vec<M
                             filename: file.into(),
                             location: Location { row, column },
                         });
+                    } else if first_arg.text_trimmed() == "duplicated"
+                        && first_arg.kind() == RSyntaxKind::R_IDENTIFIER
+                    {
+                        let (row, column) = find_row_col(ast, &loc_new_lines);
+                        messages.push(Message::AnyDuplicated {
+                            filename: file.into(),
+                            location: Location { row, column },
+                        });
                     }
                 }
             }
@@ -108,20 +116,18 @@ fn find_new_lines(ast: &RSyntaxNode) -> Vec<usize> {
 }
 
 fn find_row_col(ast: &RSyntaxNode, loc_new_lines: &[usize]) -> (usize, usize) {
-    let locs = ast.text_range();
-    let start: usize = locs.start().into();
+    let start: usize = ast.text_range().start().into();
     let new_lines_before = loc_new_lines
         .iter()
-        .filter(|x| *x < &start)
+        .filter(|x| *x <= &start)
         .collect::<Vec<&usize>>();
     let n_new_lines = new_lines_before.len();
     let last_new_line = match new_lines_before.last() {
         Some(x) => **x,
         None => 0_usize,
     };
-
-    let row = start - last_new_line + 1;
-    let col = n_new_lines + 1;
+    let col = start - last_new_line + 1;
+    let row = n_new_lines + 1;
     (row, col)
 }
 
