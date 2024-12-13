@@ -29,7 +29,7 @@ dependencies = [
 [[package]]
 name = "air_r_factory"
 version = "0.0.0"
-source = "git+https://github.com/posit-dev/air#4995460742e43c181c584086d9a937279f6a16dd"
+source = "git+https://github.com/posit-dev/air?rev=d90a40ac07bf1359c40798aca244d8abf2a116e2#d90a40ac07bf1359c40798aca244d8abf2a116e2"
 dependencies = [
  "air_r_syntax",
  "biome_rowan",
@@ -38,10 +38,11 @@ dependencies = [
 [[package]]
 name = "air_r_parser"
 version = "0.0.0"
-source = "git+https://github.com/posit-dev/air#4995460742e43c181c584086d9a937279f6a16dd"
+source = "git+https://github.com/posit-dev/air?rev=d90a40ac07bf1359c40798aca244d8abf2a116e2#d90a40ac07bf1359c40798aca244d8abf2a116e2"
 dependencies = [
  "air_r_factory",
  "air_r_syntax",
+ "biome_diagnostics",
  "biome_parser",
  "biome_rowan",
  "biome_unicode_table",
@@ -54,7 +55,7 @@ dependencies = [
 [[package]]
 name = "air_r_syntax"
 version = "0.0.0"
-source = "git+https://github.com/posit-dev/air#4995460742e43c181c584086d9a937279f6a16dd"
+source = "git+https://github.com/posit-dev/air?rev=d90a40ac07bf1359c40798aca244d8abf2a116e2#d90a40ac07bf1359c40798aca244d8abf2a116e2"
 dependencies = [
  "biome_rowan",
  "biome_string_case",
@@ -459,7 +460,7 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "flint"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "air_r_parser",
  "air_r_syntax",

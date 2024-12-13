@@ -1,5 +1,4 @@
 use air_r_parser::RParserOptions;
-use air_r_syntax::RLanguage;
 
 use flint::check_ast::*;
 use flint::message::*;
@@ -45,7 +44,7 @@ fn main() {
         .map(|file| {
             let contents = fs::read_to_string(Path::new(file)).expect("couldn't read file");
             let parsed = air_r_parser::parse(contents.as_str(), parser_options);
-            let out = &parsed.syntax::<RLanguage>();
+            let out = &parsed.syntax();
             let loc_new_lines = find_new_lines(out);
             let checks = check_ast(out, &loc_new_lines, file.to_str().unwrap());
             if args.fix {

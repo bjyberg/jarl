@@ -1,7 +1,7 @@
 use crate::location::Location;
 use crate::message::*;
 use crate::utils::{find_row_col, get_args};
-use air_r_syntax::{RSyntaxKind, RSyntaxNode, TextSize};
+use air_r_syntax::{RSyntaxKind, RSyntaxNode};
 
 pub trait LintChecker {
     fn check(&self, ast: &RSyntaxNode, loc_new_lines: &[u32], file: &str) -> Vec<Message>;
