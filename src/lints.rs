@@ -37,7 +37,7 @@ impl LintChecker for AnyIsNa {
                             start: range.start().into(),
                             end: range.end().into(),
                             applied: false,
-                            offset_change_before: -5,
+                            length_change: -3,
                         },
                     })
                 };
@@ -73,7 +73,7 @@ impl LintChecker for AnyDuplicated {
                             start: range.start().into(),
                             end: range.end().into(),
                             applied: false,
-                            offset_change_before: -1,
+                            length_change: 2,
                         },
                     })
                 };
@@ -103,7 +103,7 @@ impl LintChecker for TrueFalseSymbol {
                     start: range.start().into(),
                     end: range.end().into(),
                     applied: false,
-                    offset_change_before: 0,
+                    length_change: if ast.text_trimmed() == "T" { 3 } else { 4 },
                 },
             });
         }
