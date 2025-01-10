@@ -5,8 +5,10 @@ expression: lint_output
 ORIGINAL:
 =========
 any(is.na(x))
+any(is.na(foo(x)))
 
 
 NEW:
 ====
 /tmp/test-[...] [1:1] any-na `any(is.na(...))` is inefficient. Use `anyNA(...)` instead.
+/tmp/test-[...] [2:1] any-na `any(is.na(...))` is inefficient. Use `anyNA(...)` instead.

@@ -4,7 +4,7 @@ use std::process::{Command, Stdio};
 use tempfile::Builder;
 use tempfile::NamedTempFile;
 
-pub fn write_to_tempfile(text: &str) -> NamedTempFile {
+pub fn get_lint_and_fix_text(text: &str) -> (String, String) {
     let temp_file = Builder::new()
         .prefix("test-flint")
         .suffix(".R")
@@ -12,8 +12,7 @@ pub fn write_to_tempfile(text: &str) -> NamedTempFile {
         .unwrap();
 
     fs::write(&temp_file, text).expect("Failed to write initial content");
-
-    temp_file
+    (get_lint_text(&temp_file), get_fixed_text(&temp_file))
 }
 
 pub fn get_lint_text(file: &NamedTempFile) -> String {
@@ -75,4 +74,16 @@ pub fn no_lint(text: &str) -> bool {
 
     let lint_text = String::from_utf8_lossy(&output.stdout).to_string();
     lint_text == ""
+}
+
+pub fn write_to_tempfile(text: &str) -> NamedTempFile {
+    let temp_file = Builder::new()
+        .prefix("test-flint")
+        .suffix(".R")
+        .tempfile()
+        .unwrap();
+
+    fs::write(&temp_file, text).expect("Failed to write initial content");
+
+    temp_file
 }
