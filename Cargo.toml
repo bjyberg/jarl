@@ -34,3 +34,15 @@ clap = { version = "4.5.21", features = ["derive"] }
 walkdir = "2.5.0"
 anyhow = "1.0.94"
 tempfile = "3.14.0"
+
+[dev-dependencies]
+insta = { version = "1.42.0", features = ["yaml"] }
+regex = "1.11.1"
+
+[dependencies.regex]
+version = "1.11.1"
+default-features = false
+# Unless you have a specific reason not to, it's good sense to enable standard
+# library support. It enables several optimizations and avoids spin locks. It
+# also shouldn't meaningfully impact compile times or binary size.
+features = ["std"]

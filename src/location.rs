@@ -18,13 +18,6 @@ impl Location {
 }
 
 impl Location {
-    /// Creates a new Location object at the given row and column.
-    ///
-    /// # Example
-    /// ```
-    /// use rustpython_compiler_core::Location;
-    /// let loc = Location::new(10, 10);
-    /// ```
     pub fn new(row: usize, column: usize) -> Self {
         Location { row, column }
     }

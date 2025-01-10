@@ -1,0 +1,12 @@
+---
+source: tests/test-AnyNA.rs
+expression: fix_output
+---
+ORIGINAL:
+=========
+any(is.na(x))
+
+
+NEW:
+====
+anyNA(x)

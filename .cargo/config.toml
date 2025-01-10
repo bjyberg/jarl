@@ -9,7 +9,5 @@
 [build]
 rustdocflags = [
   "--default-theme",
-  "ayu",
-  "--html-in-header",
-  "site/templates/rustdoc-header.html"
+  "ayu"
 ]

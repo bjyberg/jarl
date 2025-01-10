@@ -8,7 +8,7 @@ use clap::{arg, Parser};
 use rayon::prelude::*;
 use std::fs;
 use std::path::Path;
-use std::time::Instant;
+// use std::time::Instant;
 use walkdir::WalkDir;
 
 /// Simple program to greet a person
@@ -36,8 +36,9 @@ struct Args {
     fix: bool,
 }
 
+/// This is my first rust crate
 fn main() {
-    let start = Instant::now();
+    // let start = Instant::now();
     let args = Args::parse();
 
     let r_files = WalkDir::new(args.dir)
@@ -81,55 +82,6 @@ fn main() {
             println!("{}", message);
         }
     }
-    let duration = start.elapsed();
-    println!("Checked files in: {:?}", duration);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use flint::location::Location;
-    use flint::utils::find_new_lines;
-    use tempfile::TempDir;
-
-    fn check_string(input: &str) -> anyhow::Result<Vec<Message>> {
-        let parser_options = RParserOptions::default();
-        let tempdir = TempDir::new()?;
-        let temppath = tempdir.path().join("test.R");
-        std::fs::write(&temppath, input)?;
-        let contents = fs::read_to_string(Path::new(&temppath)).expect("couldn't read file");
-        let parsed = air_r_parser::parse(contents.as_str(), parser_options);
-        let out = &parsed.syntax();
-        let loc_new_lines = find_new_lines(out)?;
-        let checks = check_ast(out, &loc_new_lines, temppath.to_str().unwrap());
-        Ok(checks)
-    }
-
-    #[test]
-    fn it_works() -> anyhow::Result<()> {
-        let checks = check_string(
-            r#"
-any(is.na(x))
-any(duplicated(x))
-a <- 1
-b <- T
-"#,
-        )?;
-        let location = Location::new(0, 0);
-        assert!(matches!(
-            checks.get(0).unwrap(),
-            &Message::AnyIsNa { location: _, .. } if location == Location::new(0, 0)
-        ));
-        let location = Location::new(1, 0);
-        assert!(matches!(
-            checks.get(1).unwrap(),
-            &Message::AnyDuplicated { location: _, .. } if location == Location::new(1, 0)
-        ));
-        let location = Location::new(2, 0);
-        assert!(matches!(
-            checks.get(2).unwrap(),
-            &Message::TrueFalseSymbol { location: _, .. } if location == Location::new(2, 0)
-        ));
-        Ok(())
-    }
+    // let duration = start.elapsed();
+    // println!("Checked files in: {:?}", duration);
 }

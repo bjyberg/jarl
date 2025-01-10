@@ -1,0 +1,12 @@
+---
+source: tests/test-AnyNA.rs
+expression: lint_output
+---
+ORIGINAL:
+=========
+any(is.na(x))
+
+
+NEW:
+====
+/tmp/test-[...] [1:1] any-na `any(is.na(...))` is inefficient. Use `anyNA(...)` instead.
