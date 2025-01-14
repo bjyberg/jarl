@@ -1,0 +1,76 @@
+---
+source: tests/test-ClassEquals.rs
+expression: lint_output
+---
+  OLD:
+  ====
+is_regression <- class(x) == 'lm'
+  NEW:
+  ====
+/tmp/test-[...] [1:17] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+/tmp/test-[...] [1:17] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+
+
+  OLD:
+  ====
+if (class(x) == 'character') 1
+  NEW:
+  ====
+/tmp/test-[...] [1:5] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+
+
+  OLD:
+  ====
+is_regression <- 'lm' == class(x)
+  NEW:
+  ====
+/tmp/test-[...] [1:17] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+/tmp/test-[...] [1:17] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+
+
+  OLD:
+  ====
+is_regression <- "lm" == class(x)
+  NEW:
+  ====
+/tmp/test-[...] [1:17] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+/tmp/test-[...] [1:17] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+
+
+  OLD:
+  ====
+if ('character' %in% class(x)) 1
+  NEW:
+  ====
+
+
+  OLD:
+  ====
+if (class(x) %in% 'character') 1
+  NEW:
+  ====
+
+
+  OLD:
+  ====
+if (class(x) != 'character') 1
+  NEW:
+  ====
+/tmp/test-[...] [1:5] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+
+
+  OLD:
+  ====
+x[if (class(x) == 'foo') 1 else 2]
+  NEW:
+  ====
+/tmp/test-[...] [1:7] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+/tmp/test-[...] [1:7] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
+
+
+  OLD:
+  ====
+class(foo(bar(y) + 1)) == 'abc'
+  NEW:
+  ====
+/tmp/test-[...] [1:1] class-equals Use `inherits(..., 'x')` instead of `class(...) == 'x'.`
