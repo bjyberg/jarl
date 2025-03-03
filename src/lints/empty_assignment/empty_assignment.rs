@@ -1,0 +1,72 @@
+use crate::location::Location;
+use crate::message::*;
+use crate::trait_lint_checker::LintChecker;
+use crate::utils::find_row_col;
+use air_r_syntax::RSyntaxNode;
+use air_r_syntax::*;
+use biome_rowan::AstNode;
+
+pub struct EmptyAssignment;
+
+impl Violation for EmptyAssignment {
+    fn name(&self) -> String {
+        "empty_assignment".to_string()
+    }
+    fn body(&self) -> String {
+        "Assign NULL explicitly or, whenever possible, allocate the empty object`.".to_string()
+    }
+}
+
+impl LintChecker for EmptyAssignment {
+    fn check(&self, ast: &RSyntaxNode, loc_new_lines: &[usize], file: &str) -> Vec<Diagnostic> {
+        let mut diagnostics = vec![];
+        let bin_expr = RBinaryExpression::cast(ast.clone());
+
+        if bin_expr.is_none() {
+            return diagnostics;
+        }
+
+        let RBinaryExpressionFields { left, operator, right } = bin_expr.unwrap().as_fields();
+
+        let left = left.unwrap();
+        let right = right.unwrap();
+        let operator = operator.unwrap();
+
+        if operator.kind() != RSyntaxKind::EQUAL
+            && operator.kind() != RSyntaxKind::ASSIGN
+            && operator.kind() != RSyntaxKind::ASSIGN_RIGHT
+        {
+            return diagnostics;
+        };
+
+        let value_is_empty = match operator.kind() {
+            RSyntaxKind::EQUAL | RSyntaxKind::ASSIGN => {
+                if let Some(right) = RBracedExpressions::cast(right.into()) {
+                    right.expressions().text() == ""
+                } else {
+                    return diagnostics;
+                }
+            }
+            RSyntaxKind::ASSIGN_RIGHT => {
+                if let Some(left) = RBracedExpressions::cast(left.into()) {
+                    left.expressions().text() == ""
+                } else {
+                    return diagnostics;
+                }
+            }
+            _ => unreachable!("cannot have something else than an assignment"),
+        };
+
+        if value_is_empty {
+            let (row, column) = find_row_col(ast, loc_new_lines);
+            diagnostics.push(Diagnostic {
+                message: EmptyAssignment.into(),
+                filename: file.into(),
+                location: Location { row, column },
+                fix: Fix::empty(),
+            });
+        }
+
+        diagnostics
+    }
+}
