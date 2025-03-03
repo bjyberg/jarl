@@ -27,16 +27,23 @@ impl LintChecker for DuplicatedArguments {
         let call = RCall::cast(ast.clone());
         let function = call.unwrap().function();
 
+        // println!("function: {:#?}", function);
+
         let fun_name = match function.unwrap() {
             AnyRExpression::RNamespaceExpression(x) => x.right().unwrap().text(),
+            AnyRExpression::RExtractExpression(x) => x.right().unwrap().text(),
+            AnyRExpression::RSubset(x) => x.arguments().unwrap().text(),
+            AnyRExpression::RSubset2(x) => x.arguments().unwrap().text(),
             AnyRExpression::RIdentifier(x) => x.text(),
             AnyRExpression::AnyRValue(x) => x.text(),
+            AnyRExpression::RReturnExpression(x) => x.text(),
             _ => unreachable!(
-                "function can only be namespace expression, identifier, or any R value"
+                "in {}, couldn't find function name for duplicated_arguments linter.",
+                file
             ),
         };
 
-        let whitelisted_funs = ["mutate", "transmute"];
+        let whitelisted_funs = ["mutate", "summarize", "transmute"];
         if whitelisted_funs.contains(&fun_name.as_str()) {
             return diagnostics;
         }
