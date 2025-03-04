@@ -11,6 +11,7 @@ use crate::lints::equals_na::equals_na::EqualsNa;
 use crate::lints::length_levels::length_levels::LengthLevels;
 use crate::lints::length_test::length_test::LengthTest;
 use crate::lints::true_false_symbol::true_false_symbol::TrueFalseSymbol;
+use crate::lints::which_grepl::which_grepl::WhichGrepl;
 use crate::message::*;
 use crate::semantic_model;
 use crate::trait_lint_checker::LintChecker;
@@ -31,6 +32,7 @@ fn rule_name_to_lint_checker(rule_name: &str) -> Box<dyn LintChecker> {
         "length_levels" => Box::new(LengthLevels),
         "length_test" => Box::new(LengthTest),
         "true_false_symbol" => Box::new(TrueFalseSymbol),
+        "which_grepl" => Box::new(WhichGrepl),
         unknown => unreachable!("unknown rule name: {unknown}"),
     }
 }
