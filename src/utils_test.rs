@@ -3,7 +3,7 @@ use std::fs;
 use std::process::{Command, Stdio};
 use tempfile::Builder;
 
-pub fn expect_lint(text: &str, msg: &str, rule: &str) -> bool {
+pub fn has_lint(text: &str, msg: &str, rule: &str) -> bool {
     let temp_file = Builder::new()
         .prefix("test-flir")
         .suffix(".R")
@@ -88,4 +88,12 @@ pub fn no_lint(text: &str, rule: &str) -> bool {
 
     let lint_text = String::from_utf8_lossy(&output.stdout).to_string();
     lint_text.is_empty()
+}
+
+pub fn expect_no_lint(text: &str, rule: &str) {
+    assert!(no_lint(text, rule));
+}
+
+pub fn expect_lint(text: &str, msg: &str, rule: &str) {
+    assert!(has_lint(text, msg, rule));
 }

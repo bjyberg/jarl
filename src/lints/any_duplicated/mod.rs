@@ -6,10 +6,10 @@ mod tests {
 
     #[test]
     fn test_no_lint_any_duplicated() {
-        assert!(no_lint("y <- any(x)", "any_duplicated",));
-        assert!(no_lint("y <- duplicated(x)", "any_duplicated",));
-        assert!(no_lint("y <- any(!duplicated(x))", "any_duplicated",));
-        assert!(no_lint("y <- any(!duplicated(foo(x)))", "any_duplicated",))
+        expect_no_lint("y <- any(x)", "any_duplicated");
+        expect_no_lint("y <- duplicated(x)", "any_duplicated");
+        expect_no_lint("y <- any(!duplicated(x))", "any_duplicated");
+        expect_no_lint("y <- any(!duplicated(foo(x)))", "any_duplicated")
     }
 
     #[test]
@@ -17,31 +17,27 @@ mod tests {
         use insta::assert_snapshot;
 
         let expected_message = "`any(duplicated(...))` is inefficient";
-        assert!(expect_lint(
-            "any(duplicated(x))",
-            expected_message,
-            "any_duplicated"
-        ));
-        assert!(expect_lint(
+        expect_lint("any(duplicated(x))", expected_message, "any_duplicated");
+        expect_lint(
             "any(duplicated(foo(x)))",
             expected_message,
-            "any_duplicated"
-        ));
-        assert!(expect_lint(
+            "any_duplicated",
+        );
+        expect_lint(
             "any(duplicated(x), na.rm = TRUE)",
             expected_message,
-            "any_duplicated"
-        ));
-        assert!(expect_lint(
+            "any_duplicated",
+        );
+        expect_lint(
             "any(na.rm = TRUE, duplicated(x))",
             expected_message,
-            "any_duplicated"
-        ));
-        assert!(expect_lint(
+            "any_duplicated",
+        );
+        expect_lint(
             "any(duplicated(x)); 1 + 1; any(duplicated(y))",
             expected_message,
-            "any_duplicated"
-        ));
+            "any_duplicated",
+        );
         assert_snapshot!(
             "fix_output",
             get_fixed_text(

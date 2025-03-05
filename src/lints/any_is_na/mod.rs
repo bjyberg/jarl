@@ -9,17 +9,9 @@ mod tests {
         use insta::assert_snapshot;
 
         let expected_message = "`any(is.na(...))` is inefficient";
-        assert!(expect_lint("any(is.na(x))", expected_message, "any_is_na"));
-        assert!(expect_lint(
-            "any(is.na(foo(x)))",
-            expected_message,
-            "any_is_na"
-        ));
-        assert!(expect_lint(
-            "any(is.na(x), na.rm = TRUE)",
-            expected_message,
-            "any_is_na"
-        ));
+        expect_lint("any(is.na(x))", expected_message, "any_is_na");
+        expect_lint("any(is.na(foo(x)))", expected_message, "any_is_na");
+        expect_lint("any(is.na(x), na.rm = TRUE)", expected_message, "any_is_na");
         assert_snapshot!(
             "fix_output",
             get_fixed_text(
@@ -35,9 +27,9 @@ mod tests {
 
     #[test]
     fn test_no_lint_any_na() {
-        assert!(no_lint("y <- any(x)", "any_is_na"));
-        assert!(no_lint("y <- is.na(x)", "any_is_na"));
-        assert!(no_lint("y <- any(!is.na(x))", "any_is_na"));
-        assert!(no_lint("y <- any(!is.na(foo(x)))", "any_is_na"))
+        expect_no_lint("y <- any(x)", "any_is_na");
+        expect_no_lint("y <- is.na(x)", "any_is_na");
+        expect_no_lint("y <- any(!is.na(x))", "any_is_na");
+        expect_no_lint("y <- any(!is.na(foo(x)))", "any_is_na")
     }
 }

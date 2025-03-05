@@ -27,26 +27,28 @@ impl LintChecker for AnyIsNa {
             return diagnostics;
         }
 
-        get_first_arg(ast).and_then(|args| args.first_child()).map(|y| {
-            if y.kind() == RSyntaxKind::R_CALL {
-                let fun = y.first_child().unwrap();
-                let fun_content = y.children().nth(1).unwrap().first_child().unwrap().text();
-                if fun.text_trimmed() == "is.na" && fun.kind() == RSyntaxKind::R_IDENTIFIER {
-                    let (row, column) = find_row_col(ast, loc_new_lines);
-                    let range = ast.text_trimmed_range();
-                    diagnostics.push(Diagnostic {
-                        message: AnyIsNa.into(),
-                        filename: file.into(),
-                        location: Location { row, column },
-                        fix: Fix {
-                            content: format!("anyNA({})", fun_content),
-                            start: range.start().into(),
-                            end: range.end().into(),
-                        },
-                    })
-                };
-            }
-        });
+        get_first_arg(ast)
+            .and_then(|args| args.first_child())
+            .map(|y| {
+                if y.kind() == RSyntaxKind::R_CALL {
+                    let fun = y.first_child().unwrap();
+                    let fun_content = y.children().nth(1).unwrap().first_child().unwrap().text();
+                    if fun.text_trimmed() == "is.na" && fun.kind() == RSyntaxKind::R_IDENTIFIER {
+                        let (row, column) = find_row_col(ast, loc_new_lines);
+                        let range = ast.text_trimmed_range();
+                        diagnostics.push(Diagnostic {
+                            message: AnyIsNa.into(),
+                            filename: file.into(),
+                            location: Location { row, column },
+                            fix: Fix {
+                                content: format!("anyNA({})", fun_content),
+                                start: range.start().into(),
+                                end: range.end().into(),
+                            },
+                        })
+                    };
+                }
+            });
         diagnostics
     }
 }

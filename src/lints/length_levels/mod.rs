@@ -9,16 +9,12 @@ mod tests {
         use insta::assert_snapshot;
         let expected_message = "Use `nlevels(...)` instead";
 
-        assert!(expect_lint(
-            "2:length(levels(x))",
-            expected_message,
-            "length_levels"
-        ));
-        assert!(expect_lint(
+        expect_lint("2:length(levels(x))", expected_message, "length_levels");
+        expect_lint(
             "2:length(levels(foo(a)))",
             expected_message,
-            "length_levels"
-        ));
+            "length_levels",
+        );
 
         assert_snapshot!(
             "fix_output",
@@ -31,6 +27,6 @@ mod tests {
 
     #[test]
     fn test_no_lint_length_levels() {
-        assert!(no_lint("length(c(levels(x), 'a'))", "length_levels"));
+        expect_no_lint("length(c(levels(x), 'a'))", "length_levels");
     }
 }

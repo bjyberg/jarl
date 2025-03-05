@@ -10,52 +10,52 @@ mod tests {
 
         let expected_message = "instead of comparing `class";
 
-        assert!(expect_lint(
+        expect_lint(
             "is_regression <- class(x) == 'lm'",
             expected_message,
-            "class_equals"
-        ));
-        assert!(expect_lint(
+            "class_equals",
+        );
+        expect_lint(
             "if (class(x) == 'character') 1",
             expected_message,
-            "class_equals"
-        ));
-        assert!(expect_lint(
+            "class_equals",
+        );
+        expect_lint(
             "is_regression <- 'lm' == class(x)",
             expected_message,
-            "class_equals"
-        ));
-        assert!(expect_lint(
+            "class_equals",
+        );
+        expect_lint(
             "is_regression <- \"lm\" == class(x)",
             expected_message,
-            "class_equals"
-        ));
+            "class_equals",
+        );
         // TODO: those two should fix
-        assert!(expect_lint(
+        expect_lint(
             "if ('character' %in% class(x)) 1",
             expected_message,
-            "class_equals"
-        ));
-        assert!(expect_lint(
+            "class_equals",
+        );
+        expect_lint(
             "if (class(x) %in% 'character') 1",
             expected_message,
-            "class_equals"
-        ));
-        assert!(expect_lint(
+            "class_equals",
+        );
+        expect_lint(
             "if (class(x) != 'character') 1",
             expected_message,
-            "class_equals"
-        ));
-        assert!(expect_lint(
+            "class_equals",
+        );
+        expect_lint(
             "x[if (class(x) == 'foo') 1 else 2]",
             expected_message,
-            "class_equals"
-        ));
-        assert!(expect_lint(
+            "class_equals",
+        );
+        expect_lint(
             "class(foo(bar(y) + 1)) == 'abc'",
             expected_message,
-            "class_equals"
-        ));
+            "class_equals",
+        );
 
         assert_snapshot!(
             "fix_output",
@@ -79,13 +79,13 @@ mod tests {
 
     #[test]
     fn test_no_lint_class_equals() {
-        assert!(no_lint("class(x) <- 'character'", "class_equals"));
-        assert!(no_lint("class(x) = 'character'", "class_equals"));
-        assert!(no_lint(
+        expect_no_lint("class(x) <- 'character'", "class_equals");
+        expect_no_lint("class(x) = 'character'", "class_equals");
+        expect_no_lint(
             "identical(class(x), c('glue', 'character'))",
-            "class_equals"
-        ));
-        assert!(no_lint("all(sup %in% class(model))", "class_equals"));
-        assert!(no_lint("class(x)[class(x) == 'foo']", "class_equals"));
+            "class_equals",
+        );
+        expect_no_lint("all(sup %in% class(model))", "class_equals");
+        expect_no_lint("class(x)[class(x) == 'foo']", "class_equals");
     }
 }

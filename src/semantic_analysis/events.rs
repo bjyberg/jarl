@@ -225,7 +225,8 @@ impl SemanticEventExtractor {
         // Check the identifier is from a function definition, e.g. x in function(x)
         let in_function_def = node.ancestors().any(|n| {
             n.kind() == R_PARAMETERS
-                && n.parent().is_some_and(|p| p.kind() == R_FUNCTION_DEFINITION)
+                && n.parent()
+                    .is_some_and(|p| p.kind() == R_FUNCTION_DEFINITION)
         });
 
         if is_for_var {
