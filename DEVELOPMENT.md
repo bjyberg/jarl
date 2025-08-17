@@ -1,0 +1,38 @@
+This assumes that you have already cloned the repo and have a functional rustup toolchain.
+
+## Basic structure of the crate
+
+### List of existing rules
+
+`src/lints/mod.rs` contains the existing list of rules. Each rule must have a name, belong to one or several categories (`PERF`, `READ`, etc.), a boolean indicating whether it has an automatic fix, and an optional minimum R version below which it is disabled.
+
+### Lint definition
+
+`src/lints` contains the definition of the rules, along with their associated documentation and tests. It has one subfolder per rule and two mandatory files: `<rule_name.rs>` (which contains the definition and documentation) and `mod.rs` (which contains the tests).
+
+If there are snapshot tests for this rule, then a subfolder `snapshots` will also be created.
+
+```
+src/lints/any_duplicated/
+├── any_duplicated.rs
+├── mod.rs
+└── snapshots
+    └── flir__lints__any_duplicated__tests__fix_output.snap
+```
+
+## Adding a new rule
+
+This requires three main steps:
+
+1. Add the new rule to the list in `src/lints/mod.rs`. In the same file, also add `pub(crate) mod <rulename>;`
+1. Add a subfolder with the rule name in `src/lints`. Add the documentation and the code for the rule.
+1. Add tests in `src/lints/<rulename>/mod.rs`
+
+See below some useful commands for the development.
+
+## Useful commands
+
+* `cargo run -- demos/foo.R` (or any other paths to check). The `--` in the middle is required to use the CLI in development mode (i.e. without installing it with `cargo install`)
+* `cargo build & cargo test`. It is required to build the crate before running tests.
+* `cargo insta test` and `cargo insta review` (if necessary) since snapshot tests are used for the fixing mode.
+* `cargo install --path . --profile=release` (or `--profile=dev`) to have a system-wide install and test the crate in other R projects.
