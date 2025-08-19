@@ -182,3 +182,68 @@ fn test_corner_case() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn test_fix_options() -> anyhow::Result<()> {
+    let directory = TempDir::new()?;
+    let directory = directory.path();
+
+    // File with 3 lints:
+    // - any_is_na (has fix)
+    // - class_equals (has unsafe fix)
+    // - duplicated_arguments (has no fix)
+    let test_path = "test.R";
+    let test_contents = "any(is.na(x))\nclass(x) == 'foo'\nlist(x = 1, x = 2)";
+    std::fs::write(directory.join(test_path), test_contents)?;
+
+    insta::assert_snapshot!(
+        &mut Command::new(binary_path())
+            .current_dir(directory)
+            .arg("--fix")
+            .run()
+            .normalize_os_executable_name()
+    );
+
+    std::fs::write(directory.join(test_path), test_contents)?;
+    insta::assert_snapshot!(
+        &mut Command::new(binary_path())
+            .current_dir(directory)
+            .arg("--fix")
+            .arg("--unsafe-fixes")
+            .run()
+            .normalize_os_executable_name()
+    );
+
+    std::fs::write(directory.join(test_path), test_contents)?;
+    insta::assert_snapshot!(
+        &mut Command::new(binary_path())
+            .current_dir(directory)
+            .arg("--fix")
+            .arg("--unsafe-fixes")
+            .arg("--fix-only")
+            .run()
+            .normalize_os_executable_name()
+    );
+
+    std::fs::write(directory.join(test_path), test_contents)?;
+    insta::assert_snapshot!(
+        &mut Command::new(binary_path())
+            .current_dir(directory)
+            .arg("--fix")
+            .arg("--fix-only")
+            .run()
+            .normalize_os_executable_name()
+    );
+
+    std::fs::write(directory.join(test_path), test_contents)?;
+    insta::assert_snapshot!(
+        &mut Command::new(binary_path())
+            .current_dir(directory)
+            .arg("--unsafe-fixes")
+            .arg("--fix-only")
+            .run()
+            .normalize_os_executable_name()
+    );
+
+    Ok(())
+}
