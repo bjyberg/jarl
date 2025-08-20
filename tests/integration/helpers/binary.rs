@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-/// Path to the `air` binary
+/// Path to the `flir` binary
 ///
-/// - Defined in integration tests only, as the `air` binary isn't built in unit tests
+/// - Defined in integration tests only, as the `flir` binary isn't built in unit tests
 /// - Only accessible at compile time via the `env!()` macro
 ///
 /// From https://doc.rust-lang.org/cargo/reference/cargo-targets.html#integration-tests:
