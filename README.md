@@ -4,7 +4,12 @@
 
 ## Installation
 
-TODO: doesn't work while the repo is private
+> [!WARNING]
+> While the repo is private, I recommend not using the binaries provided in the Releases. Those are not 
+> frequently updated due to limitations in Github Actions on private repos.
+>
+> For now, the best way to get the binary is to clone the repo and build the binary from source with
+> `cargo install --path . --profile=release`
 
 macOS and Linux:
 ```
