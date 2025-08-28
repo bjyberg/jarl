@@ -7,6 +7,7 @@ pub mod fix;
 pub mod lints;
 pub mod location;
 pub mod message;
+pub mod output_format;
 pub mod rule_table;
 pub mod utils;
 pub mod utils_test;
