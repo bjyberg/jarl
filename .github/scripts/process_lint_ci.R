@@ -4,7 +4,7 @@ suppressPackageStartupMessages({
 })
 
 all_files <- list.files(
-  "flir-json-results",
+  "results",
   pattern = "\\.json$",
   full.names = TRUE
 )
@@ -19,12 +19,12 @@ cat("### Ecosystem checks\n\n", file = "lint_comparison.md")
 for (repos in all_repos) {
   message("Processing results of ", repos)
   main_results_json <- jsonlite::read_json(paste0(
-    "flir-json-results/",
+    "results/",
     gsub("/", "_", repos),
     "_main.json"
   ))
   pr_results_json <- jsonlite::read_json(paste0(
-    "flir-json-results/",
+    "results/",
     gsub("/", "_", repos),
     "_pr.json"
   ))
@@ -77,7 +77,7 @@ for (repos in all_repos) {
     on = .(name, filename, row, column)
   ]
 
-  paste0(
+  msg_header <- paste0(
     "<details><summary><a href=\"https://github.com/",
     repos,
     "\">",
@@ -86,11 +86,13 @@ for (repos in all_repos) {
     nrow(new_lints),
     " -",
     nrow(deleted_lints),
-    " violations</summary>\n\n",
+    " violations</summary>\n\n"
+  )
 
-    if (nrow(new_lints) > 0) {
+  msg_new_violations <- if (nrow(new_lints) > 0) {
+    paste(
       c(
-        "\n\nNew violations:<pre>\n",
+        "<br>\nNew violations:<pre>",
         paste0(
           new_lints$filename,
           "[",
@@ -101,13 +103,19 @@ for (repos in all_repos) {
           new_lints$name,
           " -- ",
           new_lints$body,
-          "\n"
+          "\n",
+          collapse = "\n"
         )
-      )
-    },
-    if (nrow(deleted_lints) > 0) {
+      ),
+      collapse = ""
+    )
+  } else {
+    ""
+  }
+  msg_old_violations <- if (nrow(deleted_lints) > 0) {
+    paste(
       c(
-        "\n\nViolations removed:<pre>\n",
+        "<br>\nViolations removed:<pre>",
         paste0(
           deleted_lints$filename,
           "[",
@@ -118,11 +126,24 @@ for (repos in all_repos) {
           deleted_lints$name,
           " -- ",
           deleted_lints$body,
-          "\n"
+          "\n",
+          collapse = "\n"
         )
-      )
-    },
-    "</pre></details>\n\n"
+      ),
+      collapse = ""
+    )
+  } else {
+    ""
+  }
+
+  msg_bottom <- "</pre></details>\n\n"
+
+  paste(
+    msg_header,
+    msg_new_violations,
+    msg_old_violations,
+    msg_bottom,
+    collapse = ""
   ) |>
     cat(file = "lint_comparison.md", append = TRUE)
 }
