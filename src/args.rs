@@ -11,10 +11,10 @@ use crate::output_format::OutputFormat;
 )]
 pub struct CliArgs {
     #[arg(
-        default_value = ".",
-        help = "The directory in which to check or fix lints."
+        required = true,
+        help = "List of files or directories to check or fix lints, for example `flir .`."
     )]
-    pub dir: String,
+    pub files: Vec<String>,
     #[arg(
         short,
         long,

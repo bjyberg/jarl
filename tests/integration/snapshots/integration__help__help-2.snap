@@ -7,13 +7,11 @@ exit_code: 0
 ----- stdout -----
 flir: Find and Fix Lints in R Code
 
-Usage: flir [OPTIONS] [DIR]
+Usage: flir [OPTIONS] <FILES>...
 
 Arguments:
-  [DIR]
-          The directory in which to check or fix lints.
-          
-          [default: .]
+  <FILES>...
+          List of files or directories to check or fix lints, for example `flir .`.
 
 Options:
   -f, --fix

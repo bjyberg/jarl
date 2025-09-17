@@ -7,6 +7,7 @@ use crate::helpers::binary_path;
 fn test_one_non_existing_rule() -> anyhow::Result<()> {
     insta::assert_snapshot!(
         &mut Command::new(binary_path())
+            .arg(".")
             .arg("--rules")
             .arg("foo")
             .run()
@@ -20,6 +21,7 @@ fn test_one_non_existing_rule() -> anyhow::Result<()> {
 fn test_several_non_existing_rules() -> anyhow::Result<()> {
     insta::assert_snapshot!(
         &mut Command::new(binary_path())
+            .arg(".")
             .arg("--rules")
             .arg("foo,any_is_na,barbaz")
             .run()

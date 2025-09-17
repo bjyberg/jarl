@@ -1,6 +1,6 @@
 ---
 source: tests/integration/rules.rs
-expression: "&mut\nCommand::new(binary_path()).arg(\"--rules\").arg(\"foo,any_is_na,barbaz\").run().normalize_os_executable_name()"
+expression: "&mut\nCommand::new(binary_path()).arg(\".\").arg(\"--rules\").arg(\"foo,any_is_na,barbaz\").run().normalize_os_executable_name()"
 ---
 success: false
 exit_code: 2
@@ -10,4 +10,4 @@ exit_code: 2
 error: Unknown rules: foo, barbaz
 
 ----- args -----
---rules foo,any_is_na,barbaz
+. --rules foo,any_is_na,barbaz

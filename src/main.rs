@@ -37,11 +37,11 @@ fn run() -> Result<ExitCode> {
     };
 
     let mut resolver = PathResolver::new(Settings::default());
-    for DiscoveredSettings { directory, settings } in discover_settings(&[args.dir.clone()])? {
+    for DiscoveredSettings { directory, settings } in discover_settings(&args.files)? {
         resolver.add(&directory, settings);
     }
 
-    let paths = discover_r_file_paths(&[args.dir.clone()], &resolver, true)
+    let paths = discover_r_file_paths(&args.files, &resolver, true)
         .into_iter()
         .filter_map(Result::ok)
         .collect::<Vec<_>>();
