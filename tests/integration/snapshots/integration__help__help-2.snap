@@ -23,8 +23,13 @@ Options:
       --fix-only
           Apply fixes to resolve lint violations, but don't report on leftover violations. Implies `--fix`.
 
-  -r, --rules <RULES>
+  -s, --select-rules <SELECT_RULES>
           Names of rules to include, separated by a comma (no spaces).
+          
+          [default: ]
+
+  -i, --ignore-rules <IGNORE_RULES>
+          Names of rules to exclude, separated by a comma (no spaces).
           
           [default: ]
 

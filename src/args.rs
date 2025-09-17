@@ -41,7 +41,14 @@ pub struct CliArgs {
         default_value = "",
         help = "Names of rules to include, separated by a comma (no spaces)."
     )]
-    pub rules: String,
+    pub select_rules: String,
+    #[arg(
+        short,
+        long,
+        default_value = "",
+        help = "Names of rules to exclude, separated by a comma (no spaces)."
+    )]
+    pub ignore_rules: String,
     #[arg(
         short,
         long,

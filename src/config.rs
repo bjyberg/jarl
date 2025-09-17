@@ -27,7 +27,7 @@ pub struct Config {
 }
 
 pub fn build_config(args: &CliArgs, paths: Vec<PathBuf>) -> Result<Config> {
-    let rules = parse_rules_cli(&args.rules)?;
+    let rules = parse_rules_cli(&args.select_rules, &args.ignore_rules)?;
 
     // If we don't know the minimum R version used, we deactivate all rules
     // that only exists starting from a specific version.
@@ -84,26 +84,68 @@ pub fn build_config(args: &CliArgs, paths: Vec<PathBuf>) -> Result<Config> {
     })
 }
 
-pub fn parse_rules_cli(rules: &str) -> Result<RuleTable> {
+/// Resolve the rules to use, based on the CLI arguments only.
+///
+/// If `--select-rules` is not passed by the user, then we use all existing
+/// rules.
+/// If `--ignore-rules` is not passed by the user, then we don't exclude any
+/// rules.
+///
+/// `--ignore-rules` always has the last word: if a rule is in both
+/// `--select-rules` and `--ignore-rules`, then it is ignored.
+pub fn parse_rules_cli(select_rules: &str, ignore_rules: &str) -> Result<RuleTable> {
     let all_rules = all_rules_and_safety();
-    if rules.is_empty() {
-        Ok(all_rules)
+
+    let selected_rules: HashSet<String> = if select_rules.is_empty() {
+        HashSet::from_iter(all_rules.iter().map(|x| x.name.clone()))
     } else {
-        let passed_by_user = rules.split(",").collect::<Vec<&str>>();
+        let passed_by_user = select_rules.split(",").collect::<Vec<&str>>();
         let invalid_rules = get_invalid_rules(&all_rules, &passed_by_user);
         if let Some(invalid_rules) = invalid_rules {
             return Err(anyhow::anyhow!(
-                "Unknown rules: {}",
+                "Unknown rules in `--select-rules`: {}",
                 invalid_rules.join(", ")
             ));
         }
 
-        Ok(all_rules
-            .iter()
-            .filter(|r| passed_by_user.contains(&r.name.as_str()))
-            .cloned()
-            .collect::<RuleTable>())
-    }
+        HashSet::from_iter(
+            all_rules
+                .iter()
+                .filter(|r| passed_by_user.contains(&r.name.as_str()))
+                .map(|x| x.name.clone()),
+        )
+    };
+
+    let ignored_rules: HashSet<String> = if ignore_rules.is_empty() {
+        HashSet::new()
+    } else {
+        let passed_by_user = ignore_rules.split(",").collect::<Vec<&str>>();
+        let invalid_rules = get_invalid_rules(&all_rules, &passed_by_user);
+        if let Some(invalid_rules) = invalid_rules {
+            return Err(anyhow::anyhow!(
+                "Unknown rules in `--ignore-rules`: {}",
+                invalid_rules.join(", ")
+            ));
+        }
+
+        HashSet::from_iter(
+            all_rules
+                .iter()
+                .filter(|r| passed_by_user.contains(&r.name.as_str()))
+                .map(|x| x.name.clone()),
+        )
+    };
+
+    let final_rule_names: HashSet<String> =
+        selected_rules.difference(&ignored_rules).cloned().collect();
+
+    let final_rules: RuleTable = all_rules
+        .iter()
+        .filter(|r| final_rule_names.contains(&r.name))
+        .cloned()
+        .collect();
+
+    Ok(final_rules)
 }
 
 pub fn parse_r_version(min_r_version: &Option<String>) -> Result<Option<(u32, u32)>> {
