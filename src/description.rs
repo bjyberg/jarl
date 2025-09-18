@@ -1,3 +1,10 @@
+//
+// Adapted from Ark
+// https://github.com/posit-dev/ark/blob/main/crates/ark/src/lsp/inputs/package_description.rs
+// 7f9ea95d367712eb40b1669cf317c7a8a71e779b
+//
+// MIT License - Posit PBC
+
 use anyhow;
 use std::collections::HashMap;
 
