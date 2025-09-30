@@ -7,8 +7,15 @@ use crate::helpers::binary_path;
 
 #[test]
 fn test_one_non_existing_selected_rule() -> anyhow::Result<()> {
+    let directory = TempDir::new()?;
+    let directory = directory.path();
+
+    let test_path = "test.R";
+    let test_contents = "any(is.na(x))";
+    std::fs::write(directory.join(test_path), test_contents)?;
     insta::assert_snapshot!(
         &mut Command::new(binary_path())
+            .current_dir(directory)
             .arg(".")
             .arg("--select-rules")
             .arg("foo")
@@ -21,8 +28,15 @@ fn test_one_non_existing_selected_rule() -> anyhow::Result<()> {
 
 #[test]
 fn test_several_non_existing_selected_rules() -> anyhow::Result<()> {
+    let directory = TempDir::new()?;
+    let directory = directory.path();
+
+    let test_path = "test.R";
+    let test_contents = "any(is.na(x))";
+    std::fs::write(directory.join(test_path), test_contents)?;
     insta::assert_snapshot!(
         &mut Command::new(binary_path())
+            .current_dir(directory)
             .arg(".")
             .arg("--select-rules")
             .arg("foo,any_is_na,barbaz")
@@ -35,8 +49,15 @@ fn test_several_non_existing_selected_rules() -> anyhow::Result<()> {
 
 #[test]
 fn test_one_non_existing_ignored_rule() -> anyhow::Result<()> {
+    let directory = TempDir::new()?;
+    let directory = directory.path();
+
+    let test_path = "test.R";
+    let test_contents = "any(is.na(x))";
+    std::fs::write(directory.join(test_path), test_contents)?;
     insta::assert_snapshot!(
         &mut Command::new(binary_path())
+            .current_dir(directory)
             .arg(".")
             .arg("--ignore-rules")
             .arg("foo")
@@ -49,8 +70,15 @@ fn test_one_non_existing_ignored_rule() -> anyhow::Result<()> {
 
 #[test]
 fn test_several_non_existing_ignored_rules() -> anyhow::Result<()> {
+    let directory = TempDir::new()?;
+    let directory = directory.path();
+
+    let test_path = "test.R";
+    let test_contents = "any(is.na(x))";
+    std::fs::write(directory.join(test_path), test_contents)?;
     insta::assert_snapshot!(
         &mut Command::new(binary_path())
+            .current_dir(directory)
             .arg(".")
             .arg("--ignore-rules")
             .arg("foo,any_is_na,barbaz")
