@@ -52,17 +52,31 @@ pub fn assignment(ast: &RBinaryExpression) -> anyhow::Result<Option<Diagnostic>>
         return Ok(None);
     };
 
+    // We don't want the reported range to be the entire binary expression. The
+    // range is used in the LSP to highlight lints, but highlighting the entire
+    // binary expression would be super annoying for long functions that are
+    // assigned using `=`.
+    let range_to_report: TextRange;
+
     let replacement = match operator.kind() {
         RSyntaxKind::EQUAL => {
             if lhs.kind() != RSyntaxKind::R_IDENTIFIER {
                 return Ok(None);
             }
+            range_to_report = TextRange::new(
+                lhs.text_trimmed_range().start(),
+                operator.text_trimmed_range().end(),
+            );
             format!("{} <- {}", lhs.text_trimmed(), rhs.text_trimmed())
         }
         RSyntaxKind::ASSIGN_RIGHT => {
             if rhs.kind() != RSyntaxKind::R_IDENTIFIER {
                 return Ok(None);
             }
+            range_to_report = TextRange::new(
+                operator.text_trimmed_range().start(),
+                rhs.text_trimmed_range().end(),
+            );
             format!("{} <- {}", rhs.text_trimmed(), lhs.text_trimmed())
         }
         _ => unreachable!(),
@@ -71,7 +85,7 @@ pub fn assignment(ast: &RBinaryExpression) -> anyhow::Result<Option<Diagnostic>>
     let range = ast.syntax().text_trimmed_range();
     let diagnostic = Diagnostic::new(
         EqualAssignment,
-        range,
+        range_to_report,
         Fix {
             content: replacement,
             start: range.start().into(),

@@ -227,6 +227,69 @@ pub fn get_fixed_text(text: Vec<&str>, rule: &str, min_r_version: Option<&str>) 
     output.trim_end().to_string()
 }
 
+/// Extract the highlighted text based on the diagnostic range for a given rule
+///
+/// This function runs the linter on the provided code and returns the exact text
+/// that would be highlighted in the LSP, based on the diagnostic range. This is
+/// needed when the range reported by the diagnostic is different from the range
+/// reported in the fix, e.g. for `assignment` linter.
+///
+/// # Arguments
+/// * `text` - The R code to analyze
+/// * `rule` - The rule name to check
+/// * `expected_highlight` - The expected text that should be highlighted
+///
+/// # Example
+/// ```
+/// expect_diagnostic_highlight("x = 1", "assignment", "x =");
+/// expect_diagnostic_highlight("1 -> x", "assignment", "-> x");
+/// ```
+pub fn expect_diagnostic_highlight(text: &str, rule: &str, expected_highlight: &str) {
+    let highlighted = get_diagnostic_highlight(text, rule, None);
+    assert_eq!(
+        highlighted, expected_highlight,
+        "Expected highlight '{}' but got '{}' for rule '{}' on code: {}",
+        expected_highlight, highlighted, rule, text
+    );
+}
+
+/// Get the highlighted text based on the diagnostic range for a given rule
+///
+/// Returns the exact text that would be highlighted in the LSP.
+pub fn get_diagnostic_highlight(text: &str, rule: &str, min_r_version: Option<&str>) -> String {
+    let diagnostics = check_code(text, rule, min_r_version);
+
+    if diagnostics.is_empty() {
+        panic!("No diagnostics found for rule '{}' on code: {}", rule, text);
+    }
+
+    if diagnostics.len() > 1 {
+        panic!(
+            "Multiple diagnostics found for rule '{}' on code: {}. Expected exactly one.",
+            rule, text
+        );
+    }
+
+    let diagnostic = &diagnostics[0];
+    let range = diagnostic.range;
+
+    // Extract the text within the diagnostic range
+    let start_offset = usize::from(range.start());
+    let end_offset = usize::from(range.end());
+
+    if end_offset > text.len() || start_offset > end_offset {
+        panic!(
+            "Invalid range [{}, {}) for text of length {} on code: {}",
+            start_offset,
+            end_offset,
+            text.len(),
+            text
+        );
+    }
+
+    text[start_offset..end_offset].to_string()
+}
+
 /// Get fixed text with unsafe fixes for a series of code snippets
 pub fn get_unsafe_fixed_text(text: Vec<&str>, rule: &str) -> String {
     let mut output: String = String::new();

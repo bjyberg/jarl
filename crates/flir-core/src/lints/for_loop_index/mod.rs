@@ -59,4 +59,20 @@ mod tests {
             get_fixed_text(vec!["for (x in x) {}",], "for_loop_index", None)
         );
     }
+
+    #[test]
+    fn test_for_loop_index_diagnostic_ranges() {
+        use crate::utils_test::expect_diagnostic_highlight;
+
+        expect_diagnostic_highlight(
+            "for (x in foo(x)) { TRUE }",
+            "for_loop_index",
+            "x in foo(x)",
+        );
+        expect_diagnostic_highlight(
+            "for (x in foo(\nx\n)) { TRUE }",
+            "for_loop_index",
+            "x in foo(\nx\n)",
+        );
+    }
 }
