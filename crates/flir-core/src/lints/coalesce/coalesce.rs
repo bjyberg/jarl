@@ -39,6 +39,9 @@ use biome_rowan::{AstNode, AstNodeList};
 /// ## Example
 ///
 /// ```r
+/// x <- 1
+/// y <- 2
+///
 /// if (is.null(x)) y else x
 ///
 /// if (!is.null(x)) {
@@ -50,6 +53,9 @@ use biome_rowan::{AstNode, AstNodeList};
 ///
 /// Use instead:
 /// ```r
+/// x <- 1
+/// y <- 2
+///
 /// x %||% y # (in both cases)
 /// ```
 ///
