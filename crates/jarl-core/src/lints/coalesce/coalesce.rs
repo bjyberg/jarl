@@ -99,7 +99,6 @@ pub fn coalesce(ast: &RIfStatement) -> anyhow::Result<Option<Diagnostic>> {
             .into_iter()
             .filter_map(Result::ok)
             .filter_map(|x| x.value())
-            .map(|x| x)
             .collect::<Vec<AnyRExpression>>();
 
         if fn_body.len() != 1 {
@@ -150,7 +149,6 @@ pub fn coalesce(ast: &RIfStatement) -> anyhow::Result<Option<Diagnostic>> {
             .into_iter()
             .filter_map(Result::ok)
             .filter_map(|x| x.value())
-            .map(|x| x)
             .collect::<Vec<AnyRExpression>>();
 
         if fn_body.len() != 1 {

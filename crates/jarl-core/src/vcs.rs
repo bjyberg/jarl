@@ -23,7 +23,7 @@ pub fn check_version_control(path: &String, config: &Config) -> Result<()> {
     if config.allow_no_vcs {
         return Ok(());
     }
-    if !in_git_repo(&path) {
+    if !in_git_repo(path) {
         // Do not add too many line breaks here so that the text wraps the terminal
         // width.
         bail!(

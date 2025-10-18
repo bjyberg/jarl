@@ -157,9 +157,9 @@ impl Emitter for GithubEmitter {
                 file = diagnostic.filename.to_string_lossy()
             )?;
 
-            write!(
+            writeln!(
                 writer,
-                "[{}] {}\n",
+                "[{}] {}",
                 diagnostic.message.name, diagnostic.message.body
             )?;
         }
