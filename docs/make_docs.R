@@ -25,7 +25,7 @@ docs <- lapply(rule_files, \(x) {
 
   doc <- content[start:end]
   doc <- gsub("^///(| )", "", doc)
-  doc <- gsub("^```r", "```\\{r\\}", doc)
+  # doc <- gsub("^```r", "```\\{r\\}", doc)
 
   doc
 })
@@ -37,7 +37,7 @@ names(docs) <- rule_names
 
 for (i in seq_along(docs)) {
   to_write <- c(paste0("# `", rule_names[i], "`"), docs[[i]])
-  writeLines(to_write, paste0("docs/rules/", rule_names[i], ".qmd"))
+  writeLines(to_write, paste0("docs/rules/", rule_names[i], ".md"))
 }
 
 ### Automatically add new rules in _quarto.yml
@@ -48,8 +48,8 @@ doc_names <- sort(rule_names)
 
 quarto_yml <- read_yaml("docs/_quarto.yml")
 quarto_yml$website$sidebar[[1]]$contents <- c(
-  "rules.qmd",
-  paste0("rules/", doc_names, ".qmd")
+  "rules.md",
+  paste0("rules/", doc_names, ".md")
 )
 write_yaml(
   quarto_yml,

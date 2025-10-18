@@ -12,13 +12,13 @@ on each element of the list.
 
 ## Example
 
-```{r}
+```r
 x <- list(a = 1, b = 2:3, c = 1:10)
 sapply(x, length)
 ```
 
 Use instead:
-```{r}
+```r
 x <- list(a = 1, b = 2:3, c = 1:10)
 lengths(x)
 ```

@@ -37,7 +37,8 @@ use biome_rowan::AstNode;
 /// ## References
 ///
 /// See:
-/// * https://style.tidyverse.org/syntax.html#assignment
+///
+/// - [https://style.tidyverse.org/syntax.html#assignment](https://style.tidyverse.org/syntax.html#assignment)
 pub fn implicit_assignment(ast: &RBinaryExpression) -> anyhow::Result<Option<Diagnostic>> {
     let operator = ast.operator()?;
     if operator.kind() != RSyntaxKind::ASSIGN

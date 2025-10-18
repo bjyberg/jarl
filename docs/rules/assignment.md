@@ -13,17 +13,18 @@ mixing both operators in a codebase.
 
 ## Example
 
-```{r}
+```r
 x = "a"
 ```
 
 Use instead:
-```{r}
+```r
 x <- "a"
 ```
 
 ## References
 
 See:
-* https://style.tidyverse.org/syntax.html#assignment-1
-* https://stackoverflow.com/a/1742550
+
+- [https://style.tidyverse.org/syntax.html#assignment-1](https://style.tidyverse.org/syntax.html#assignment-1)
+- [https://stackoverflow.com/a/1742550](https://stackoverflow.com/a/1742550)

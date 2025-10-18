@@ -10,7 +10,7 @@ It is better to use `sort(x, ...)`, which is more readable than
 
 ## Example
 
-```{r}
+```r
 x <- c(3, 2, 5, 1, 5, 6)
 x[order(x)]
 x[order(x, na.last = TRUE)]
@@ -18,7 +18,7 @@ x[order(x, decreasing = TRUE)]
 ```
 
 Use instead:
-```{r}
+```r
 x <- c(3, 2, 5, 1, 5, 6)
 sort(x)
 sort(x, na.last = TRUE)

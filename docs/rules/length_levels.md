@@ -12,13 +12,13 @@ performance gains.
 
 ## Example
 
-```{r}
+```r
 x <- factor(1:3)
 length(levels(x))
 ```
 
 Use instead:
-```{r}
+```r
 x <- factor(1:3)
 nlevels(x)
 ```

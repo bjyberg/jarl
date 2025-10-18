@@ -16,7 +16,7 @@ their logical nature, while `child`, `parent_supervision`,
 
 ## Example
 
-```{r}
+```r
 x <- c(TRUE, FALSE)
 if (any(x == TRUE)) {
   print("hi")
@@ -24,7 +24,7 @@ if (any(x == TRUE)) {
 ```
 
 Use instead:
-```{r}
+```r
 x <- c(TRUE, FALSE)
 if (any(x)) {
   print("hi")

@@ -242,9 +242,9 @@ pub fn get_fixed_text(text: Vec<&str>, rule: &str, min_r_version: Option<&str>) 
 /// reported in the fix, e.g. for `assignment` linter.
 ///
 /// # Arguments
-/// * `text` - The R code to analyze
-/// * `rule` - The rule name to check
-/// * `expected_highlight` - The expected text that should be highlighted
+/// - `text` - The R code to analyze
+/// - `rule` - The rule name to check
+/// - `expected_highlight` - The expected text that should be highlighted
 ///
 /// # Example
 /// ```

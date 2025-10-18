@@ -15,6 +15,6 @@ should typically be avoided.
 
 ## Example
 
-```{r}
+```r
 list(x = 1, x = 2)
 ```

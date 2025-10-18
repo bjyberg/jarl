@@ -12,19 +12,19 @@ to read and much more efficient.
 This rule provides an automated fix, except when extra arguments (outside
 of `na.rm`) are provided. In other words, this would be marked as lint and
 could be automatically replaced:
-```{r}
+```r
 dat <- data.frame(x = 1:3, y = 4:6)
 apply(dat, 1, mean, na.rm = TRUE)
 ```
 but this wouldn't:
-```{r}
+```r
 dat <- data.frame(x = 1:3, y = 4:6)
 apply(dat, 1, mean, trim = 0.2)
 ```
 
 ## Example
 
-```{r}
+```r
 dat <- data.frame(x = 1:3, y = 4:6)
 apply(dat, 1, sum)
 apply(dat, 2, sum)
@@ -34,7 +34,7 @@ apply(dat, 2, mean, na.rm = TRUE)
 ```
 
 Use instead:
-```{r}
+```r
 dat <- data.frame(x = 1:3, y = 4:6)
 rowSums(dat)
 colSums(dat)

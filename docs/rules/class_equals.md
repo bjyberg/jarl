@@ -17,7 +17,7 @@ The same rationale applies to `class(...) %in% "some_class"`.
 
 ## Example
 
-```{r}
+```r
 x <- lm(drat ~ mpg, mtcars)
 class(x) <- c("my_class", class(x))
 
@@ -25,7 +25,7 @@ class(x) == "lm"
 ```
 
 Use instead:
-```{r}
+```r
 x <- lm(drat ~ mpg, mtcars)
 class(x) <- c("my_class", class(x))
 

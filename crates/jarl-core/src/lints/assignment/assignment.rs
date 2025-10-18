@@ -30,8 +30,9 @@ pub struct EqualAssignment;
 /// ## References
 ///
 /// See:
-/// * https://style.tidyverse.org/syntax.html#assignment-1
-/// * https://stackoverflow.com/a/1742550
+///
+/// - [https://style.tidyverse.org/syntax.html#assignment-1](https://style.tidyverse.org/syntax.html#assignment-1)
+/// - [https://stackoverflow.com/a/1742550](https://stackoverflow.com/a/1742550)
 impl Violation for EqualAssignment {
     fn name(&self) -> String {
         "assignment".to_string()

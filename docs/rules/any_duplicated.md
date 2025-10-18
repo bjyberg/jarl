@@ -16,13 +16,13 @@ Therefore, we can replace `any(duplicated(...))` by `anyDuplicated(...) > 0`.
 
 ## Example
 
-```{r}
+```r
 x <- c(1:10000, 1, NA)
 any(duplicated(x))
 ```
 
 Use instead:
-```{r}
+```r
 x <- c(1:10000, 1, NA)
 anyDuplicated(x) > 0
 ```

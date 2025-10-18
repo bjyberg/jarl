@@ -11,12 +11,12 @@ but the latter is more readable.
 
 ## Example
 
-```{r}
+```r
 sample(1:10, 2)
 ```
 
 Use instead:
-```{r}
+```r
 sample.int(10, 2)
 ```
 

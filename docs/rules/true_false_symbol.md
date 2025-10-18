@@ -17,13 +17,13 @@ avoid confusion.
 
 ## Example
 
-```{r}
+```r
 x <- T
 y <- F
 ```
 
 Use instead:
-```{r}
+```r
 x <- TRUE
 y <- FALSE
 ```

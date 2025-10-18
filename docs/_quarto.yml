@@ -1,39 +1,64 @@
 project:
   type: website
+format:
+  html:
+    theme: morph
+    css: styles.css
+    toc: true
+language:
+  search-text-placeholder: Search (press "s")
+execute:
+  eval: false
 website:
   title: jarl
+  repo-url: https://github.com/etiennebacher/jarl
+  repo-subdir: docs
+  repo-actions:
+  - source
+  - issue
+  search:
+    location: navbar
+    type: textbox
+    keyboard-shortcut: s
   navbar:
-    search: true
+    right:
+    - icon: github
+      href: https://github.com/etiennebacher/jarl
+      aria-label: GitHub
     left:
     - text: Home
       href: index.qmd
     - text: Rules
-      href: rules.qmd
+      href: rules.md
     - text: Development
-      href: development.qmd
+      href: development.md
     - text: About
-      href: about.qmd
+      href: about.md
   sidebar:
   - title: Rules
-    style: docked
-    background: light
+    style: floating
     contents:
-    - rules.qmd
-    - rules/any_duplicated.qmd
-    - rules/any_is_na.qmd
-    - rules/assignment.qmd
-    - rules/class_equals.qmd
-    - rules/duplicated_arguments.qmd
-    - rules/equals_na.qmd
-    - rules/for_loop_index.qmd
-    - rules/grepv.qmd
-    - rules/is_numeric.qmd
-    - rules/length_levels.qmd
-    - rules/length_test.qmd
-    - rules/lengths.qmd
-    - rules/matrix_apply.qmd
-    - rules/redundant_equals.qmd
-    - rules/sample_int.qmd
-    - rules/sort.qmd
-    - rules/true_false_symbol.qmd
-    - rules/which_grepl.qmd
+    - rules.md
+    - rules/all_equal.md
+    - rules/any_duplicated.md
+    - rules/any_is_na.md
+    - rules/assignment.md
+    - rules/class_equals.md
+    - rules/coalesce.md
+    - rules/duplicated_arguments.md
+    - rules/equals_na.md
+    - rules/for_loop_index.md
+    - rules/grepv.md
+    - rules/implicit_assignment.md
+    - rules/is_numeric.md
+    - rules/length_levels.md
+    - rules/length_test.md
+    - rules/lengths.md
+    - rules/matrix_apply.md
+    - rules/numeric_leading_zero.md
+    - rules/redundant_equals.md
+    - rules/repeat.md
+    - rules/sample_int.md
+    - rules/sort.md
+    - rules/true_false_symbol.md
+    - rules/which_grepl.md

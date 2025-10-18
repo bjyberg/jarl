@@ -10,13 +10,13 @@ testing `is.numeric(x) || is.integer(x)` is redundant and can be simplified.
 
 ## Example
 
-```{r}
+```r
 x <- 1:3
 is.numeric(x) || is.integer(x)
 ```
 
 Use instead:
-```{r}
+```r
 x <- 1:3
 is.numeric(x)
 ```

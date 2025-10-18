@@ -13,13 +13,13 @@ Using `grepv(...)` is therefore more readable than `grep(...)`.
 
 ## Example
 
-```{r}
+```r
 x <- c("hello", "hi", "howdie")
 grep("i", x, value = TRUE)
 ```
 
 Use instead:
-```{r}
+```r
 x <- c("hello", "hi", "howdie")
 grepv("i", x)
 ```

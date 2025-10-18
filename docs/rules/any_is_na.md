@@ -13,13 +13,13 @@ efficient, both in speed and memory used.
 
 ## Example
 
-```{r}
+```r
 x <- c(1:10000, NA)
 any(is.na(x))
 ```
 
 Use instead:
-```{r}
+```r
 x <- c(1:10000, NA)
 anyNA(x)
 ```

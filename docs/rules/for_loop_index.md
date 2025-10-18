@@ -11,7 +11,7 @@ to errors.
 
 ## Example
 
-```{r}
+```r
 x <- c(1, 2, 3)
 for (x in x) {
   x + 1
@@ -19,7 +19,7 @@ for (x in x) {
 ```
 
 Use instead:
-```{r}
+```r
 x <- c(1, 2, 3)
 for (xi in x) {
   xi + 1

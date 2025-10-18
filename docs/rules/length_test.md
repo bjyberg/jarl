@@ -11,13 +11,13 @@ This is very likely a mistake since computing the length of the output of
 
 ## Example
 
-```{r}
+```r
 x <- 1:3
 length(x == 1)
 ```
 
 Use instead:
-```{r}
+```r
 x <- 1:3
 length(x) == 1
 ```
