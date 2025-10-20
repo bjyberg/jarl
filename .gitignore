@@ -16,5 +16,3 @@ demos
 docs/_site
 docs/\.quarto
 Makefile
-
-/.quarto/
