@@ -45,6 +45,7 @@ Configure the extension through Positron / VS Code settings:
 - `jarl.logLevel`: Set the log level for the language server (`error`, `warning`, `info`, `debug`, `trace`)
 - `jarl.executableStrategy`: How to locate the jarl binary (`bundled`, `environment`, `path`)
 - `jarl.executablePath`: Custom path to jarl binary (when using `path` strategy)
+- `jarl.assignmentOperator`: Controls the preferred assignment operator, used in the `assignment` linter (`<-` or `=`)
 
 ### Example Configuration
 
@@ -52,7 +53,8 @@ Configure the extension through Positron / VS Code settings:
 {
   "jarl.logLevel": "info",
   "jarl.executableStrategy": "environment",
-  "jarl.executablePath": "/path/to/custom/jarl"
+  "jarl.executablePath": "/path/to/custom/jarl",
+  "jarl.assignmentOperator": "="
 }
 ```
 

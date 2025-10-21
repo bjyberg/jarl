@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { ExecutableStrategy } from "./binary";
 
 type LogLevel = "error" | "warn" | "info" | "debug" | "trace";
+type AssignmentOperator = "<-" | "="
 
 // This is a direct representation of the Client settings sent to the Server in the
 // `initializationOptions` field of `InitializeParams`. These are only pulled at the
@@ -10,6 +11,7 @@ type LogLevel = "error" | "warn" | "info" | "debug" | "trace";
 export type InitializationOptions = {
 	logLevel?: LogLevel;
 	dependencyLogLevels?: string;
+	assignmentOperator?: AssignmentOperator;
 };
 
 export type WorkspaceSettings = {
@@ -28,6 +30,7 @@ export function getInitializationOptions(
 			config,
 			"dependencyLogLevels",
 		),
+		assignmentOperator: getOptionalUserValue<AssignmentOperator>(config, "assignmentOperator") || "<-",
 	};
 }
 
