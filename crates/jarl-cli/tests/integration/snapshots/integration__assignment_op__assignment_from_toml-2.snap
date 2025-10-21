@@ -5,8 +5,8 @@ expression: "&mut\nCommand::new(binary_path()).current_dir(directory).arg(\"chec
 success: false
 exit_code: 1
 ----- stdout -----
-test.R [3:1] assignment Use `=` for assignment.
-test.R [4:3] assignment Use `=` for assignment.
+test.R [3:0] assignment Use `=` for assignment.
+test.R [4:2] assignment Use `=` for assignment.
 
 Found 2 errors.
 2 fixable with the `--fix` option.

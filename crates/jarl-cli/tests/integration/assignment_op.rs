@@ -68,7 +68,6 @@ assignment = "<-"
             .arg(".")
             .run()
             .normalize_os_executable_name()
-            .normalize_temp_paths()
     );
 
     std::fs::write(
@@ -85,7 +84,6 @@ assignment = "="
             .arg(".")
             .run()
             .normalize_os_executable_name()
-            .normalize_temp_paths()
     );
 
     Ok(())
@@ -119,7 +117,6 @@ assignment = "<-"
             .arg("=")
             .run()
             .normalize_os_executable_name()
-            .normalize_temp_paths()
     );
     Ok(())
 }

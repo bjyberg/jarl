@@ -6,7 +6,7 @@ success: false
 exit_code: 1
 ----- stdout -----
 test.R [2:1] assignment Use `<-` for assignment.
-test.R [4:3] assignment Use `<-` for assignment.
+test.R [4:2] assignment Use `<-` for assignment.
 
 Found 2 errors.
 2 fixable with the `--fix` option.

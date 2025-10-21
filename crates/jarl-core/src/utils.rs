@@ -48,7 +48,11 @@ pub fn find_row_col(start: usize, loc_new_lines: &[usize]) -> (usize, usize) {
         None => 0_usize,
     };
 
-    let col: usize = start - last_new_line;
+    let col: usize = if last_new_line == 0 {
+        start
+    } else {
+        start - last_new_line - 1
+    };
     let row: usize = n_new_lines + 1;
     (row, col)
 }
