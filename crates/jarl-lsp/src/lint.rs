@@ -57,7 +57,7 @@ pub fn lint_document(snapshot: &DocumentSnapshot) -> Result<Vec<Diagnostic>> {
 fn run_jarl_linting(
     content: &str,
     file_path: Option<&Path>,
-    assignment_operator: Option<&String>,
+    lsp_assignment_operator: Option<&String>,
 ) -> Result<Vec<JarlDiagnostic>> {
     let file_path = match file_path {
         Some(path) => path,
@@ -82,20 +82,39 @@ fn run_jarl_linting(
     std::fs::write(&temp_file, content)
         .map_err(|e| anyhow!("Failed to write temporary file: {}", e))?;
     let temp_path_str = temp_file.to_string_lossy().to_string();
-    let path: Vec<String> = vec![temp_path_str];
+    let temp_path: Vec<String> = vec![temp_path_str];
+
+    // Discover settings from the actual file path, not the temp file path
+    // This ensures jarl.toml from the workspace is properly loaded
+    let actual_file_path = vec![file_path.to_string_lossy().to_string()];
 
     let mut resolver = PathResolver::new(Settings::default());
-    for DiscoveredSettings { directory, settings } in discover_settings(&path)? {
+    for DiscoveredSettings { directory, settings } in discover_settings(&actual_file_path)? {
         resolver.add(&directory, settings);
+        tracing::debug!("Discovered settings from directory: {:?}", directory);
     }
 
-    let paths = discover_r_file_paths(&path, &resolver, true)
+    // Use temp path for discovering R file paths (just the temp file itself)
+    let paths = discover_r_file_paths(&temp_path, &resolver, true)
         .into_iter()
         .filter_map(Result::ok)
         .collect::<Vec<_>>();
 
+    // Check if TOML has assignment setting and if so use it, otherwise use
+    // the assignment from the workspace settings.
+    let toml_has_assignment = resolver
+        .items()
+        .iter()
+        .any(|item| item.value().linter.assignment.is_some());
+
+    let assignment_operator = if toml_has_assignment {
+        None
+    } else {
+        lsp_assignment_operator.cloned()
+    };
+
     let check_config = ArgsConfig {
-        files: path.iter().map(|s| s.into()).collect(),
+        files: temp_path.iter().map(|s| s.into()).collect(),
         fix: false,
         unsafe_fixes: false,
         fix_only: false,
@@ -104,7 +123,7 @@ fn run_jarl_linting(
         min_r_version: None,
         allow_dirty: false,
         allow_no_vcs: false,
-        assignment_op: assignment_operator.cloned(),
+        assignment_op: assignment_operator,
     };
 
     let config = build_config(&check_config, &resolver, paths)?;
