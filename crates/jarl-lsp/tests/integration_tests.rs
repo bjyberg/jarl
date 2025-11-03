@@ -7,18 +7,18 @@ use std::time::Duration;
 
 #[test]
 fn test_server_binary_exists_and_runs() {
-    // Test if we can at least run the binary with --help
-    let output = Command::new(env!("CARGO_BIN_EXE_jarl-lsp"))
-        .arg("--help")
-        .output();
+    // Test if we can at least run the binary with --help via `jarl server`
+    let jarl_bin = std::env::var("CARGO_BIN_EXE_jarl").unwrap_or_else(|_| "jarl".to_string());
+
+    let output = Command::new(jarl_bin).args(["server", "--help"]).output();
 
     match output {
         Ok(output) => {
             assert!(output.status.success(), "Binary should run with --help");
             let stdout = String::from_utf8_lossy(&output.stdout);
             assert!(
-                stdout.contains("Jarl Language Server"),
-                "Help should mention Jarl Language Server"
+                stdout.contains("language server"),
+                "Help should mention language server"
             );
         }
         Err(e) => {
@@ -29,8 +29,11 @@ fn test_server_binary_exists_and_runs() {
 
 #[test]
 fn test_server_startup_basic() {
-    // Test if the server can start without immediate crash
-    let mut child = Command::new(env!("CARGO_BIN_EXE_jarl-lsp"))
+    // Test if the server can start without immediate crash via `jarl server`
+    let jarl_bin = std::env::var("CARGO_BIN_EXE_jarl").unwrap_or_else(|_| "jarl".to_string());
+
+    let mut child = Command::new(jarl_bin)
+        .arg("server")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
