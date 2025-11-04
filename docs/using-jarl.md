@@ -1,3 +1,7 @@
+---
+title: Using Jarl
+---
+
 # Using Jarl
 
 ## Linting and fixing

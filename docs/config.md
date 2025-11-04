@@ -1,3 +1,7 @@
+---
+title: Configuring Jarl
+---
+
 # Configuring Jarl
 
 ## With the command line
