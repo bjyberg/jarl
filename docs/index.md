@@ -17,9 +17,9 @@ title: Jarl
 
 <br>
 
-Jarl is a fast linter for R, it does static code analysis to search for programming errors, bugs, and suspicious patterns of code.
+Jarl is a fast linter for R: it does static code analysis to search for programming errors, bugs, and suspicious patterns of code.
 
-* Orders of magnitudes faster than `lintr` and `flir`[^benchmark]
+* Orders of magnitude faster than `lintr` and `flir`[^benchmark]
 * Automatic fixes when possible
 * Support for 20+ [`lintr` rules](https://jarl.etiennebacher.com/rules) (and growing)
 * Integration in popular IDEs and editors (VS Code, Positron, Emacs, Vim, ...)
