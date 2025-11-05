@@ -35,7 +35,7 @@ any(is.na(x))
 ```
 
 ```sh
-> jarl check test.R
+$ jarl check test.R
 warning: any_is_na
  --> test.R:1:1
   |
@@ -51,7 +51,7 @@ Found 1 error.
 Use `--fix` to automatically fix rule violations when possible:
 
 ```sh
-> jarl check test.R --fix
+$ jarl check test.R --fix
 ```
 
 `test.R`:
