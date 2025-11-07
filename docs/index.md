@@ -75,6 +75,8 @@ Jarl can also be directly integrated in your coding environment, see [Editors](h
 
 ### Binaries
 
+Either get binaries from the [Releases page](https://github.com/etiennebacher/jarl/releases) or install Jarl from the existing installer scripts below. 
+
 **macOS and Linux:**
 
 ```sh
