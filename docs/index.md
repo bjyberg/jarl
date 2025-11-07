@@ -104,4 +104,4 @@ cargo install --git https://github.com/etiennebacher/jarl --profile=release
 * the design of Jarl is heavily inspired by [Ruff](https://docs.astral.sh/ruff) and [Cargo clippy](https://doc.rust-lang.org/stable/clippy/).
 * R Consortium for funding part of the development of Jarl.
 
-![](r-consortium-logo.png){width="30%"}
+<img src="r-consortium-logo.png" alt="R Consortium logo" width="30%"/>
