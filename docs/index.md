@@ -41,6 +41,10 @@ You can use Jarl via the command line.
 `test.R`:
 ```r
 any(is.na(x))
+
+if (all.equal(x, y)) {
+  print("x and y are equal")
+}
 ```
 
 ```sh
@@ -53,8 +57,18 @@ warning: any_is_na
   |
   = help: Use `anyNA(...)` instead.
 
-Found 1 error.
-1 fixable with the `--fix` option.
+warning: all_equal
+ --> test.R:3:5
+  |
+3 | if (all.equal(x, y)) {
+  |     --------------- `all.equal()` can return a string instead of FALSE.
+  |
+  = help: Wrap `all.equal()` in `isTRUE()`, or replace it by `identical()` if
+    no tolerance is required.
+
+Found 2 errors.
+1 fixable with the `--fix` option (1 hidden fix can be enabled with the
+`--unsafe-fixes` option).
 ```
 
 Use `--fix` to automatically fix rule violations when possible:
@@ -66,6 +80,10 @@ $ jarl check test.R --fix
 `test.R`:
 ```r
 anyNA(x)
+
+if (all.equal(x, y)) {
+  print("x and y are equal")
+}
 ```
 
 Jarl can also be directly integrated in your coding environment, see [Editors](https://jarl.etiennebacher.com/editors).
