@@ -541,10 +541,21 @@ impl Server {
 
         // Filter diagnostics that intersect with the requested range
         for diagnostic in diagnostics {
-            if ranges_overlap(&diagnostic.range, &params.range)
-                && let Some(action) = Self::diagnostic_to_code_action(&diagnostic, snapshot)
-            {
-                actions.push(types::CodeActionOrCommand::CodeAction(action));
+            if ranges_overlap(&diagnostic.range, &params.range) {
+                // Add the regular fix action if available
+                if let Some(action) = Self::diagnostic_to_code_action(&diagnostic, snapshot) {
+                    actions.push(types::CodeActionOrCommand::CodeAction(action));
+                }
+
+                // Add nolint actions
+                if let Some(action) = Self::diagnostic_to_nolint_rule_action(&diagnostic, snapshot)
+                {
+                    actions.push(types::CodeActionOrCommand::CodeAction(action));
+                }
+
+                if let Some(action) = Self::diagnostic_to_nolint_all_action(&diagnostic, snapshot) {
+                    actions.push(types::CodeActionOrCommand::CodeAction(action));
+                }
             }
         }
 
@@ -600,6 +611,198 @@ impl Server {
             disabled: None,
             data: None,
         })
+    }
+
+    /// Create a code action to add a nolint comment for a specific rule
+    fn diagnostic_to_nolint_rule_action(
+        diagnostic: &types::Diagnostic,
+        snapshot: &DocumentSnapshot,
+    ) -> Option<types::CodeAction> {
+        let content = snapshot.content();
+
+        // Extract the rule name from the diagnostic data
+        let fix_data = diagnostic.data.as_ref()?;
+        let fix: crate::lint::DiagnosticFix = serde_json::from_value(fix_data.clone()).ok()?;
+        let rule_name = fix.rule_name;
+
+        // Find the start of the line where the diagnostic is
+        let line_start = diagnostic.range.start.line;
+        let line_start_pos = types::Position::new(line_start, 0);
+
+        // Calculate the indentation of the current line
+        let line_text = Self::get_line_text(content, line_start as usize)?;
+        let indent = line_text
+            .chars()
+            .take_while(|c| c.is_whitespace())
+            .collect::<String>();
+
+        // Check if there's already a nolint comment on the previous line
+        let (insert_pos, new_comment) = if line_start > 0 {
+            let prev_line_text = Self::get_line_text(content, (line_start - 1) as usize)?;
+            let trimmed = prev_line_text.trim();
+
+            // Check if previous line is a generic nolint or already contains this rule
+            if trimmed == "# nolint" {
+                // Generic nolint already exists, no need to add specific rule
+                return None;
+            }
+
+            if let Some(updated_comment) = Self::update_existing_nolint(&prev_line_text, &rule_name)
+            {
+                // Update existing nolint comment (replace without newline since we're replacing the line content)
+                let prev_line_start = types::Position::new(line_start - 1, 0);
+                let prev_line_end =
+                    types::Position::new(line_start - 1, prev_line_text.len() as u32);
+                (
+                    types::Range::new(prev_line_start, prev_line_end),
+                    updated_comment,
+                )
+            } else if trimmed.starts_with("# nolint:") {
+                // Rule already exists in the nolint comment (update_existing_nolint returned None)
+                return None;
+            } else {
+                // Insert new nolint comment
+                (
+                    types::Range::new(line_start_pos, line_start_pos),
+                    format!("{}# nolint: {}\n", indent, rule_name),
+                )
+            }
+        } else {
+            // First line, just insert
+            (
+                types::Range::new(line_start_pos, line_start_pos),
+                format!("{}# nolint: {}\n", indent, rule_name),
+            )
+        };
+
+        let text_edit = types::TextEdit { range: insert_pos, new_text: new_comment };
+
+        let mut changes = std::collections::HashMap::new();
+        changes.insert(snapshot.uri().clone(), vec![text_edit]);
+
+        let workspace_edit = types::WorkspaceEdit { changes: Some(changes), ..Default::default() };
+
+        Some(types::CodeAction {
+            title: format!("Ignore `{}` violation on this node.", rule_name),
+            kind: Some(types::CodeActionKind::QUICKFIX),
+            diagnostics: Some(vec![diagnostic.clone()]),
+            edit: Some(workspace_edit),
+            command: None,
+            is_preferred: Some(false),
+            disabled: None,
+            data: None,
+        })
+    }
+
+    /// Create a code action to add a nolint comment for all rules
+    fn diagnostic_to_nolint_all_action(
+        diagnostic: &types::Diagnostic,
+        snapshot: &DocumentSnapshot,
+    ) -> Option<types::CodeAction> {
+        let content = snapshot.content();
+
+        // Find the start of the line where the diagnostic is
+        let line_start = diagnostic.range.start.line;
+        let line_start_pos = types::Position::new(line_start, 0);
+
+        // Calculate the indentation of the current line
+        let line_text = Self::get_line_text(content, line_start as usize)?;
+        let indent = line_text
+            .chars()
+            .take_while(|c| c.is_whitespace())
+            .collect::<String>();
+
+        // Check if there's already a nolint comment on the previous line
+        let (insert_pos, new_comment) = if line_start > 0 {
+            let prev_line_text = Self::get_line_text(content, (line_start - 1) as usize)?;
+            if prev_line_text.trim().starts_with("# nolint") {
+                // Already has a nolint comment, replace it with the all version (no newline since we're replacing)
+                let prev_line_start = types::Position::new(line_start - 1, 0);
+                let prev_line_end =
+                    types::Position::new(line_start - 1, prev_line_text.len() as u32);
+                (
+                    types::Range::new(prev_line_start, prev_line_end),
+                    format!("{}# nolint", indent),
+                )
+            } else {
+                // Insert new nolint comment
+                (
+                    types::Range::new(line_start_pos, line_start_pos),
+                    format!("{}# nolint\n", indent),
+                )
+            }
+        } else {
+            // First line, just insert
+            (
+                types::Range::new(line_start_pos, line_start_pos),
+                format!("{}# nolint\n", indent),
+            )
+        };
+
+        let text_edit = types::TextEdit { range: insert_pos, new_text: new_comment };
+
+        let mut changes = std::collections::HashMap::new();
+        changes.insert(snapshot.uri().clone(), vec![text_edit]);
+
+        let workspace_edit = types::WorkspaceEdit { changes: Some(changes), ..Default::default() };
+
+        Some(types::CodeAction {
+            title: "Ignore all violations on this node.".to_string(),
+            kind: Some(types::CodeActionKind::QUICKFIX),
+            diagnostics: Some(vec![diagnostic.clone()]),
+            edit: Some(workspace_edit),
+            command: None,
+            is_preferred: Some(false),
+            disabled: None,
+            data: None,
+        })
+    }
+
+    /// Get the text of a specific line
+    fn get_line_text(content: &str, line_number: usize) -> Option<String> {
+        content.lines().nth(line_number).map(|s| s.to_string())
+    }
+
+    /// Update an existing nolint comment to include a new rule
+    fn update_existing_nolint(line: &str, rule_name: &str) -> Option<String> {
+        let trimmed = line.trim();
+
+        // Check if this is a nolint comment
+        if !trimmed.starts_with("# nolint") {
+            return None;
+        }
+
+        // If it's already a generic "# nolint", leave it as is
+        if trimmed == "# nolint" {
+            return None;
+        }
+
+        // Extract existing rules
+        if let Some(colon_pos) = trimmed.find(':') {
+            let rules_part = trimmed[colon_pos + 1..].trim();
+            let existing_rules: Vec<&str> = rules_part.split(',').map(|s| s.trim()).collect();
+
+            // Check if the rule is already there
+            if existing_rules.contains(&rule_name) {
+                return None;
+            }
+
+            // Add the new rule
+            let indent = line
+                .chars()
+                .take_while(|c| c.is_whitespace())
+                .collect::<String>();
+            let all_rules = existing_rules
+                .iter()
+                .chain(std::iter::once(&rule_name))
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
+
+            Some(format!("{}# nolint: {}", indent, all_rules))
+        } else {
+            None
+        }
     }
 }
 
@@ -672,6 +875,7 @@ mod tests {
             start: 0, // replace entire assignment
             end: 5,   // end of "x = 1"
             is_safe: true,
+            rule_name: "assignment_operator".to_string(),
         };
 
         let diagnostic = create_test_diagnostic_with_fix(
@@ -728,8 +932,9 @@ mod tests {
         let fix = DiagnosticFix {
             content: "".to_string(),
             start: 0,
-            end: 0, // No range to fix
+            end: 0,
             is_safe: true,
+            rule_name: "class_comparison".to_string(),
         };
 
         let diagnostic = create_test_diagnostic_with_fix(
@@ -751,6 +956,7 @@ mod tests {
             start: 0,
             end: 5, // "x = 1"
             is_safe: true,
+            rule_name: "assignment_operator".to_string(),
         };
 
         let diagnostic = create_test_diagnostic_with_fix(
@@ -784,6 +990,7 @@ mod tests {
             start: 10, // start of "any(is.na(...))"
             end: 33,   // end of "any(is.na(data$column))"
             is_safe: true,
+            rule_name: "any_is_na".to_string(),
         };
 
         let diagnostic = create_test_diagnostic_with_fix(
@@ -851,6 +1058,7 @@ mod tests {
                 start,
                 end,
                 is_safe: true,
+                rule_name: "assignment_operator".to_string(),
             };
 
             let range = Range::new(range_start, range_end);
@@ -940,10 +1148,11 @@ mod tests {
             start: 0,
             end: content1.len(),
             is_safe: true,
+            rule_name: "assignment_operator".to_string(),
         };
 
         let diagnostic1 = create_test_diagnostic_with_fix(
-            Range::new(Position::new(0, 6), Position::new(0, 7)), // position of "="
+            Range::new(Position::new(0, 8), Position::new(0, 9)), // position of "="
             "Use <- for assignment".to_string(),
             fix1,
         );
@@ -963,6 +1172,7 @@ mod tests {
             start: 0,
             end: content2.len(),
             is_safe: true,
+            rule_name: "assignment_operator".to_string(),
         };
 
         let diagnostic2 = create_test_diagnostic_with_fix(
@@ -983,10 +1193,11 @@ mod tests {
             start: 0,
             end: content3.len(),
             is_safe: true,
+            rule_name: "assignment_operator".to_string(),
         };
 
         let diagnostic3 = create_test_diagnostic_with_fix(
-            Range::new(Position::new(0, 3), Position::new(0, 4)), // position of "="
+            Range::new(Position::new(0, 5), Position::new(0, 6)),
             "Use <- for assignment".to_string(),
             fix3,
         );
@@ -1024,6 +1235,7 @@ mod tests {
             start: 12, // start of "any(is.na(...))"
             end: 39,   // end of "any(is.na(données$colonne))"
             is_safe: true,
+            rule_name: "any_is_na".to_string(),
         };
 
         let diagnostic = create_test_diagnostic_with_fix(
@@ -1062,6 +1274,7 @@ mod tests {
             start: 5, // byte position of "=" in UTF-8
             end: 6,
             is_safe: true,
+            rule_name: "assignment_operator".to_string(),
         };
 
         // Test UTF-8 encoding
@@ -1120,5 +1333,371 @@ mod tests {
             lsp_types::ClientCapabilities::default(),
             None,
         )
+    }
+
+    #[test]
+    fn test_nolint_rule_action_basic() {
+        let snapshot = create_test_snapshot("x = 1\n");
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 0,
+            end: 5,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(0, 2), Position::new(0, 3)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_rule_action(&diagnostic, &snapshot);
+
+        assert!(action.is_some());
+        let action = action.unwrap();
+
+        assert_eq!(
+            action.title,
+            "Ignore `assignment_operator` violation on this node."
+        );
+        assert_eq!(action.kind, Some(types::CodeActionKind::QUICKFIX));
+        assert!(!action.is_preferred.unwrap_or(true));
+    }
+
+    #[test]
+    fn test_nolint_all_action_basic() {
+        let snapshot = create_test_snapshot("x = 1\n");
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 0,
+            end: 5,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(0, 2), Position::new(0, 3)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_all_action(&diagnostic, &snapshot);
+
+        assert!(action.is_some());
+        let action = action.unwrap();
+
+        assert_eq!(action.title, "Ignore all violations on this node.");
+        assert_eq!(action.kind, Some(types::CodeActionKind::QUICKFIX));
+    }
+
+    #[test]
+    fn test_nolint_does_not_add_duplicate_rule() {
+        let snapshot = create_test_snapshot("# nolint: assignment_operator\nx = 1\n");
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 30,
+            end: 35,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(1, 2), Position::new(1, 3)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_rule_action(&diagnostic, &snapshot);
+
+        // Should return None because the rule is already in the nolint comment
+        assert!(action.is_none());
+    }
+
+    #[test]
+    fn test_nolint_does_not_add_to_generic_nolint() {
+        let snapshot = create_test_snapshot("# nolint\nx = 1\n");
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 9,
+            end: 14,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(1, 2), Position::new(1, 3)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_rule_action(&diagnostic, &snapshot);
+
+        // Should return None because generic nolint already covers all rules
+        assert!(action.is_none());
+    }
+
+    #[test]
+    fn test_multiple_violations_on_different_lines() {
+        let snapshot = create_test_snapshot(
+            "any(\n  is.na(\n    # hello there\n    any(duplicated(x))\n  ) # end comment\n)\n",
+        );
+
+        // Create two different diagnostics for different lines with comments between
+        let fix1 = DiagnosticFix {
+            content: "anyNA(any(duplicated(x)))".to_string(),
+            start: 0,
+            end: 67,
+            is_safe: true,
+            rule_name: "any_is_na".to_string(),
+        };
+
+        let diagnostic1 = create_test_diagnostic_with_fix(
+            Range::new(Position::new(1, 2), Position::new(1, 7)),
+            "Use anyNA() instead of any(is.na())".to_string(),
+            fix1,
+        );
+
+        let fix2 = DiagnosticFix {
+            content: "anyDuplicated(x)".to_string(),
+            start: 37,
+            end: 54,
+            is_safe: true,
+            rule_name: "any_duplicated".to_string(),
+        };
+
+        let diagnostic2 = create_test_diagnostic_with_fix(
+            Range::new(Position::new(3, 4), Position::new(3, 7)),
+            "Use anyDuplicated() instead of any(duplicated())".to_string(),
+            fix2,
+        );
+
+        // Test that both diagnostics generate nolint actions
+        let action1 = Server::diagnostic_to_nolint_rule_action(&diagnostic1, &snapshot);
+        let action2 = Server::diagnostic_to_nolint_rule_action(&diagnostic2, &snapshot);
+
+        assert!(action1.is_some());
+        assert!(action2.is_some());
+
+        assert_eq!(
+            action1.as_ref().unwrap().title,
+            "Ignore `any_is_na` violation on this node."
+        );
+        assert_eq!(
+            action2.as_ref().unwrap().title,
+            "Ignore `any_duplicated` violation on this node."
+        );
+    }
+
+    #[test]
+    fn test_nolint_entire_document_insert_new_comment() {
+        // Test the entire resulting document when inserting a new nolint comment
+        let content = "x = 1\ny = 2\n";
+        let snapshot = create_test_snapshot(content);
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 0,
+            end: 5,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(0, 2), Position::new(0, 3)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_rule_action(&diagnostic, &snapshot).unwrap();
+        let edit = action.edit.unwrap();
+        let changes = edit.changes.unwrap();
+        let text_edits = changes.values().next().unwrap();
+
+        // Apply the edit manually to verify the result
+        let mut result = content.to_string();
+        for text_edit in text_edits.iter().rev() {
+            let start = position_to_offset(&result, text_edit.range.start);
+            let end = position_to_offset(&result, text_edit.range.end);
+            result.replace_range(start..end, &text_edit.new_text);
+        }
+
+        assert_eq!(result, "# nolint: assignment_operator\nx = 1\ny = 2\n");
+    }
+
+    #[test]
+    fn test_nolint_entire_document_update_existing_comment() {
+        // Test the entire resulting document when updating an existing nolint comment
+        let content = "# nolint: foo\nx = 1\ny = 2\n";
+        let snapshot = create_test_snapshot(content);
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 14,
+            end: 19,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(1, 2), Position::new(1, 3)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_rule_action(&diagnostic, &snapshot).unwrap();
+        let edit = action.edit.unwrap();
+        let changes = edit.changes.unwrap();
+        let text_edits = changes.values().next().unwrap();
+
+        // Apply the edit manually to verify the result
+        let mut result = content.to_string();
+        for text_edit in text_edits.iter().rev() {
+            let start = position_to_offset(&result, text_edit.range.start);
+            let end = position_to_offset(&result, text_edit.range.end);
+            result.replace_range(start..end, &text_edit.new_text);
+        }
+
+        assert_eq!(result, "# nolint: foo, assignment_operator\nx = 1\ny = 2\n");
+    }
+
+    #[test]
+    fn test_nolint_entire_document_multiline_with_comments() {
+        // Test with the complex multiline example with existing comments
+        let content = "# nolint: implicit_assignment\nany(\n  duplicated(\n    which(grepl(\"a\", x))\n  )\n)\n";
+        let snapshot = create_test_snapshot(content);
+
+        let fix = DiagnosticFix {
+            content: "anyDuplicated(which(grepl(\"a\", x)))".to_string(),
+            start: 35,
+            end: 73,
+            is_safe: true,
+            rule_name: "any_duplicated".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(1, 0), Position::new(1, 3)),
+            "Use anyDuplicated() instead of any(duplicated())".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_rule_action(&diagnostic, &snapshot).unwrap();
+        let edit = action.edit.unwrap();
+        let changes = edit.changes.unwrap();
+        let text_edits = changes.values().next().unwrap();
+
+        // Apply the edit manually to verify the result
+        let mut result = content.to_string();
+        for text_edit in text_edits.iter().rev() {
+            let start = position_to_offset(&result, text_edit.range.start);
+            let end = position_to_offset(&result, text_edit.range.end);
+            result.replace_range(start..end, &text_edit.new_text);
+        }
+
+        // Should update the existing nolint comment without adding extra blank lines
+        assert_eq!(
+            result,
+            "# nolint: implicit_assignment, any_duplicated\nany(\n  duplicated(\n    which(grepl(\"a\", x))\n  )\n)\n"
+        );
+    }
+
+    #[test]
+    fn test_nolint_all_entire_document_replaces_specific() {
+        // Test that nolint all replaces specific nolint without extra blank lines
+        let content = "# nolint: foo, bar\nx = 1\n";
+        let snapshot = create_test_snapshot(content);
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 19,
+            end: 24,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(1, 2), Position::new(1, 3)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_all_action(&diagnostic, &snapshot).unwrap();
+        let edit = action.edit.unwrap();
+        let changes = edit.changes.unwrap();
+        let text_edits = changes.values().next().unwrap();
+
+        // Apply the edit manually to verify the result
+        let mut result = content.to_string();
+        for text_edit in text_edits.iter().rev() {
+            let start = position_to_offset(&result, text_edit.range.start);
+            let end = position_to_offset(&result, text_edit.range.end);
+            result.replace_range(start..end, &text_edit.new_text);
+        }
+
+        assert_eq!(result, "# nolint\nx = 1\n");
+    }
+
+    #[test]
+    fn test_nolint_entire_document_with_indentation() {
+        // Test that indentation is preserved in the resulting document
+        let content = "  # nolint: foo\n  x = 1\n  y = 2\n";
+        let snapshot = create_test_snapshot(content);
+
+        let fix = DiagnosticFix {
+            content: "x <- 1".to_string(),
+            start: 18,
+            end: 23,
+            is_safe: true,
+            rule_name: "assignment_operator".to_string(),
+        };
+
+        let diagnostic = create_test_diagnostic_with_fix(
+            Range::new(Position::new(1, 4), Position::new(1, 5)),
+            "Use <- for assignment".to_string(),
+            fix,
+        );
+
+        let action = Server::diagnostic_to_nolint_rule_action(&diagnostic, &snapshot).unwrap();
+        let edit = action.edit.unwrap();
+        let changes = edit.changes.unwrap();
+        let text_edits = changes.values().next().unwrap();
+
+        // Apply the edit manually to verify the result
+        let mut result = content.to_string();
+        for text_edit in text_edits.iter().rev() {
+            let start = position_to_offset(&result, text_edit.range.start);
+            let end = position_to_offset(&result, text_edit.range.end);
+            result.replace_range(start..end, &text_edit.new_text);
+        }
+
+        assert_eq!(
+            result,
+            "  # nolint: foo, assignment_operator\n  x = 1\n  y = 2\n"
+        );
+    }
+
+    /// Helper function to convert LSP Position to byte offset in a string
+    fn position_to_offset(content: &str, position: types::Position) -> usize {
+        let mut offset = 0;
+        let mut current_line = 0;
+
+        for line in content.lines() {
+            if current_line == position.line {
+                return offset + position.character as usize;
+            }
+            offset += line.len() + 1; // +1 for newline
+            current_line += 1;
+        }
+
+        // If we're past the end, return the content length
+        if current_line == position.line {
+            offset + position.character as usize
+        } else {
+            content.len()
+        }
     }
 }
