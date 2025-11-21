@@ -101,6 +101,18 @@ powershell Set-ExecutionPolicy Bypass -Scope Process -Force; `
    iwr https://github.com/etiennebacher/jarl/releases/latest/download/jarl-installer.ps1 | iex
 ```
 
+If you use Scoop, you can also install or update Jarl with [these commands](https://github.com/cderv/r-bucket#jarl):
+
+```sh
+scoop bucket add r-bucket https://github.com/cderv/r-bucket.git
+
+# install
+scoop install jarl
+
+# update
+scoop update jarl
+```
+
 ### From source
 
 Alternatively, if you have Rust installed, you can get the development version with:
