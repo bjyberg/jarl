@@ -74,3 +74,26 @@ This has to be specified in the `lsp` field:
 
 Currently, Jarl cannot be integrated in RStudio to highlight code or provide quick fix actions in the editor.
 The only way to use Jarl in RStudio is via the Terminal.
+
+## Helix
+
+To use Jarl as language server in the Helix editor, you need first to add it to the [language configuration file](https://docs.helix-editor.com/languages.html), for instance `~/.config/helix/languages.toml`:
+
+```toml
+[language-server.jarl]
+command = "jarl"
+args = ["server"]
+
+[[language]]
+name = "r"
+language-servers = ["jarl"]
+```
+
+Jarl should then be active in the editor, providing code highlighting and showing the message when the cursor is on the highlighted code:
+
+![](img/helix_highlight.png){fig-alt="R script showing several pieces of code that trigger rule violations, such as `any(is.na(x))`. This is displayed in the Helix editor. The code is underlined in yellow and the violation message appears next to the code."}
+
+Helix also provides a code-action keybinding.
+When the cursor is on some code reported by Jarl and when the editor is in "Normal" mode, press "Space" then "a" to show the different code actions:
+
+![](img/helix_quick_fix.png){fig-alt="The same R script as before, but this time there is a list of three actions next to the highlighted piece of code: apply fix, ignore this rule, and ignore all rules."}
