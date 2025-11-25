@@ -80,9 +80,8 @@ Here's a basic idea of the workflow to add a new rule:
 1. add it to the list of rules for the specific kind of node it targets (function calls, if conditions, for loops, etc.)
 1. implement the rule
 1. add tests
-1. run cargo clippy
-1. add it to the changelog
-1. add it to the website docs and update those docs
+1. document the rule
+1. final polishing
 
 From now on, all file paths refer to the subfolder `crates/jarl-core`.
 
