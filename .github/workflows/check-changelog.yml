@@ -22,8 +22,30 @@ jobs:
             // Check if PR title starts with "feat:", "feat!:", "fix:", or "fix!:"
             const needsChangelog = /^(feat|fix)!?:/i.test(prTitle);
 
+            const labelName = 'forgot-changelog';
+
+            // Get current labels on the PR
+            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const hasLabel = currentLabels.some(label => label.name === labelName);
+
             if (!needsChangelog) {
               console.log('PR title does not start with "feat" or "fix", skipping changelog check');
+
+              // Remove label if it exists since changelog is no longer required
+              if (hasLabel) {
+                console.log('Removing label since changelog is no longer required');
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: labelName,
+                });
+              }
               return;
             }
 
@@ -40,17 +62,6 @@ jobs:
             const changelogModified = files.data.some(
               file => file.filename === 'docs/changelog.md'
             );
-
-            const labelName = 'forgot-changelog';
-
-            // Get current labels on the PR
-            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-            });
-
-            const hasLabel = currentLabels.some(label => label.name === labelName);
 
             if (!changelogModified && !hasLabel) {
               // Changelog not modified, add the label
