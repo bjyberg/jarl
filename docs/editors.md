@@ -134,7 +134,7 @@ This enables the code-actions and diagnostics.
 If you want to enable 'fix on save' behavior in Neovim, you can use the following code with [conform.nvim](https://github.com/stevearc/conform.nvim):
 
 ```lua
-require("conform").setup({
+require('conform').setup({
   format_on_save = {
     timeout_ms = 1500,
     lsp_format = 'fallback',
