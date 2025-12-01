@@ -94,6 +94,7 @@ pub fn discover_r_file_paths<P: AsRef<Path>>(
     paths: &[P],
     resolver: &PathResolver<Settings>,
     use_linter_settings: bool,
+    no_default_exclude: bool,
 ) -> DiscoveredFiles {
     let paths: Vec<PathBuf> = paths.iter().map(fs::normalize_path).collect();
 
@@ -122,26 +123,30 @@ pub fn discover_r_file_paths<P: AsRef<Path>>(
     builder.git_exclude(true);
 
     // Add exclude patterns from settings if linter settings should be used
-    if use_linter_settings && let Some(settings_item) = resolver.items().first() {
-        let settings = settings_item.value();
-        let root = settings_item.path();
-
-        // Check if default_exclude is disabled (true by default)
-        let use_default_exclude = settings.linter.default_exclude.unwrap_or(true);
-
+    if use_linter_settings {
         // Build custom ignore patterns
         let mut patterns = Vec::new();
 
-        if use_default_exclude {
+        // Default root directory if no settings found
+        let mut root = Path::new(".");
+
+        if let Some(settings_item) = resolver.items().first() {
+            let settings = settings_item.value();
+            root = settings_item.path();
+
+            // Add custom exclude patterns from jarl.toml
+            if let Some(exclude_patterns) = &settings.linter.exclude {
+                for pattern in exclude_patterns {
+                    patterns.push(pattern.as_str());
+                }
+            }
+            if settings.linter.default_exclude.unwrap_or(true) {
+                // Add default exclude patterns
+                patterns.extend_from_slice(DEFAULT_EXCLUDE_PATTERNS);
+            }
+        } else if !no_default_exclude {
             // Add default exclude patterns
             patterns.extend_from_slice(DEFAULT_EXCLUDE_PATTERNS);
-        }
-
-        // Add custom exclude patterns from jarl.toml
-        if let Some(exclude_patterns) = &settings.linter.exclude {
-            for pattern in exclude_patterns {
-                patterns.push(pattern.as_str());
-            }
         }
 
         // If we have patterns, create an override and add it to the builder

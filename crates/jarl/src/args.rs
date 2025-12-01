@@ -123,8 +123,13 @@ pub struct CheckCommand {
         help = "Assignment operator to use, can be either `<-` or `=`."
     )]
     pub assignment: Option<String>,
+    #[arg(
+        long,
+        default_value = "false",
+        help = "Do not apply the default set of file patterns that should be excluded."
+    )]
+    pub no_default_exclude: bool,
 }
-
 #[derive(Clone, Debug, Parser)]
 pub(crate) struct ServerCommand {}
 
