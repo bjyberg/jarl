@@ -443,7 +443,6 @@ any(is.na(x))
 
         assert!(manager.should_skip_rule(first_expr, Rule::AnyIsNa));
         assert!(manager.should_skip_rule(first_expr, Rule::Coalesce));
-        // Note: "scalar_in" doesn't exist in Rule enum
     }
 
     #[test]
