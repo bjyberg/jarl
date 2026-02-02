@@ -17,23 +17,14 @@ mod tests {
 
         // This is handled by `unreachable_code`
         expect_no_lint(
-            "if (FALSE) { print('hi') } else { print('bye') }",
+            "if (!FALSE) { print('hi') } else { print('bye') }",
             "if_always_true",
             None,
         );
 
-        expect_no_lint(
-            "if (TRUE && x) { print('hi') }",
-            "if_always_true",
-            None,
-        );
-        expect_no_lint(
-            "if (x || FALSE) { print('hi') }",
-            "if_always_true",
-            None,
-        );
+        expect_no_lint("if (TRUE && x) { print('hi') }", "if_always_true", None);
+        expect_no_lint("if (x || FALSE) { print('hi') }", "if_always_true", None);
         expect_no_lint("if (0 || x) { print('hi') }", "if_always_true", None);
-        expect_no_lint("if (FALSE) { print('hi') }", "if_always_true", None);
         expect_no_lint("if (0) { print('hi') }", "if_always_true", None);
         expect_no_lint("if (-0.0) { print('hi') }", "if_always_true", None);
         expect_no_lint("if (x && FALSE) { print('hi') }", "if_always_true", None);

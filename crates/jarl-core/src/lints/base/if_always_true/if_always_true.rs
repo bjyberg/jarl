@@ -29,7 +29,6 @@ pub struct IfAlwaysTrue;
 ///   print("always true")
 /// }
 /// ```
-
 impl Violation for IfAlwaysTrue {
     fn name(&self) -> String {
         "if_always_true".to_string()
