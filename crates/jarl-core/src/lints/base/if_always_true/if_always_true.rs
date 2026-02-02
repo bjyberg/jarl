@@ -2,17 +2,19 @@ use crate::diagnostic::*;
 use air_r_syntax::*;
 use biome_rowan::AstNode;
 
+pub struct IfAlwaysTrue;
+
 /// ## What it does
 ///
-/// Detects `if` conditions that are always `TRUE` or `FALSE`.
+/// Detects `if` conditions that are always `TRUE`.
 /// This is only triggered for `if` statements without an `else`
 /// clause, these are handled by `unreachable_code`
 ///
 /// ## Why is this bad?
 ///
-/// Code with constant conditions will either never run or always run.
+/// Code with constant if conditions will always run.
 /// It clutters the code and makes it more difficult to read.
-/// Dead code should be removed and always true code should be unwrapped.
+/// If conditions that are always true should be unwrapped.
 ///
 /// This rule does not have an automatic fix
 ///
@@ -23,44 +25,36 @@ use biome_rowan::AstNode;
 ///   print("always true")
 /// }
 ///
-/// if (FALSE && ...) {
-///   print("always false")
-/// }
-///
 /// if (TRUE || ...) {
 ///   print("always true")
 /// }
 /// ```
-pub fn if_constant_condition(ast: &RIfStatement) -> anyhow::Result<Option<Diagnostic>> {
+
+impl Violation for IfAlwaysTrue {
+    fn name(&self) -> String {
+        "if_always_true".to_string()
+    }
+    fn body(&self) -> String {
+        "`if` condition is always `TRUE`.".to_string()
+    }
+    fn suggestion(&self) -> Option<String> {
+        Some("Remove the `if` condition and keep the body.".to_string())
+    }
+}
+pub fn if_always_true(ast: &RIfStatement) -> anyhow::Result<Option<Diagnostic>> {
     // This is already handled by `unreachable_code`
     if ast.else_clause().is_some() {
         return Ok(None);
     }
 
     let condition = ast.condition()?;
-    let constant_value = match evaluate_constant_condition(&condition)? {
-        Some(value) => value,
-        None => return Ok(None),
-    };
 
-    let (message, suggestion) = if constant_value {
-        (
-            "`if` condition is always `TRUE`.".to_string(),
-            Some("Remove the `if` condition and keep the body.".to_string()),
-        )
-    } else {
-        (
-            "`if` condition is always `FALSE`.".to_string(),
-            Some("Remove this `if` statement.".to_string()),
-        )
-    };
+    if evaluate_constant_condition(&condition)? != Some(true) {
+        return Ok(None);
+    }
 
     let range = condition.syntax().text_trimmed_range();
-    let diagnostic = Diagnostic::new(
-        ViolationData::new("if_constant_condition".to_string(), message, suggestion),
-        range,
-        Fix::empty(),
-    );
+    let diagnostic = Diagnostic::new(IfAlwaysTrue, range, Fix::empty());
 
     Ok(Some(diagnostic))
 }

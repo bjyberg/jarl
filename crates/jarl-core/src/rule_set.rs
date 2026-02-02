@@ -365,8 +365,8 @@ declare_rules! {
         fix: Safe,
         min_r_version: Some((4, 5, 0)),
     },
-    IfConstantCondition => {
-        name: "if_constant_condition",
+    IfAlwaysTrue => {
+        name: "if_always_true",
         categories: [Read, Susp],
         default: Enabled,
         fix: None,
