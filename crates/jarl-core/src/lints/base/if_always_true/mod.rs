@@ -38,76 +38,42 @@ mod tests {
 
     #[test]
     fn test_lint_if_always_true() {
-        expect_lint(
-            "if (TRUE) print('hi')",
-            "always `TRUE`",
-            "if_always_true",
-            None,
-        );
+        let message = "always evaluates to `TRUE`";
+        expect_lint("if (TRUE) print('hi')", message, "if_always_true", None);
         expect_lint(
             "if (TRUE || x) { print('hi') }",
-            "always `TRUE`",
+            message,
             "if_always_true",
             None,
         );
         expect_lint(
             "if (x || TRUE) { print('hi') }",
-            "always `TRUE`",
+            message,
             "if_always_true",
             None,
         );
-        expect_lint(
-            "if (1) { print('hi') }",
-            "always `TRUE`",
-            "if_always_true",
-            None,
-        );
-        expect_lint(
-            "if (-1) { print('hi') }",
-            "always `TRUE`",
-            "if_always_true",
-            None,
-        );
-        expect_lint(
-            "if (5.5) { print('hi') }",
-            "always `TRUE`",
-            "if_always_true",
-            None,
-        );
-        expect_lint(
-            "if (0.1) { print('hi') }",
-            "always `TRUE`",
-            "if_always_true",
-            None,
-        );
+        expect_lint("if (1) { print('hi') }", message, "if_always_true", None);
+        expect_lint("if (-1) { print('hi') }", message, "if_always_true", None);
+        expect_lint("if (5.5) { print('hi') }", message, "if_always_true", None);
+        expect_lint("if (0.1) { print('hi') }", message, "if_always_true", None);
         expect_lint(
             "if (10 || x) { print('hi') }",
-            "always `TRUE`",
+            message,
             "if_always_true",
             None,
         );
         expect_lint(
             "if (!FALSE) { print('hi') }",
-            "always `TRUE`",
+            message,
             "if_always_true",
             None,
         );
-        expect_lint(
-            "if (Inf) { print('hi') }",
-            "always `TRUE`",
-            "if_always_true",
-            None,
-        );
-        expect_lint(
-            "if (-Inf) { print('hi') }",
-            "always `TRUE`",
-            "if_always_true",
-            None,
-        );
+        expect_lint("if (Inf) { print('hi') }", message, "if_always_true", None);
+        expect_lint("if (-Inf) { print('hi') }", message, "if_always_true", None);
         //Not handled by `unreachable_code`
         expect_lint(
             "if (x) { print('hi') } else if (TRUE) { print('bye') }",
-            "always `TRUE`",
+            message,
             "if_always_true",
             None,
         );

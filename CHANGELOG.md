@@ -38,11 +38,11 @@
 - New rules:
   - `equals_nan` (#284)
   - `equals_null` (#283)
+  - `if_always_true` (#311, @bjyberg)
   - `internal_function` (#291)
   - `redundant_ifelse` (#260)
   - `unnecessary_nesting` (#268)
   - `unreachable_code` (#261)
-  - `if_always_true` (#237)
 
 - When the output format is `full` or `concise`, rule names now have a hyperlink
   leading to the website documentation (#278).

@@ -6,17 +6,17 @@ pub struct IfAlwaysTrue;
 
 /// ## What it does
 ///
-/// Detects `if` conditions that are always `TRUE`.
-/// This is only triggered for `if` statements without an `else`
-/// clause, these are handled by `unreachable_code`
+/// Detects `if` conditions that always evaluate to `TRUE`. This is only triggered
+/// for `if` statements without an `else` clause, these are handled by
+/// `unreachable_code`.
 ///
 /// ## Why is this bad?
 ///
-/// Code with constant if conditions will always run.
-/// It clutters the code and makes it more difficult to read.
-/// If conditions that are always true should be unwrapped.
+/// Code in an `if` statement whose condition always evaluates to `TRUE` will
+/// always run. It clutters the code and makes it more difficult to read. In
+/// these cases, the `if` condition should be removed.
 ///
-/// This rule does not have an automatic fix
+/// This rule does not have an automatic fix.
 ///
 /// ## Example
 ///
@@ -28,16 +28,26 @@ pub struct IfAlwaysTrue;
 /// if (TRUE || ...) {
 ///   print("always true")
 /// }
+///
+/// if (!FALSE) {
+///   print("always true")
+/// }
+/// ```
+///
+/// Use instead:
+///
+/// ```r
+/// print("always true")
 /// ```
 impl Violation for IfAlwaysTrue {
     fn name(&self) -> String {
         "if_always_true".to_string()
     }
     fn body(&self) -> String {
-        "`if` condition is always `TRUE`.".to_string()
+        "`if` condition always evaluates to `TRUE`.".to_string()
     }
     fn suggestion(&self) -> Option<String> {
-        Some("Remove the `if` condition and keep the body.".to_string())
+        Some("Modify the `if` condition, or keep only the body.".to_string())
     }
 }
 
