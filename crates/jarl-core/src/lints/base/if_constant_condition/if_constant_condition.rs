@@ -32,6 +32,7 @@ use biome_rowan::AstNode;
 /// }
 /// ```
 pub fn if_constant_condition(ast: &RIfStatement) -> anyhow::Result<Option<Diagnostic>> {
+    // This is already handled by `unreachable_code`
     if ast.else_clause().is_some() {
         return Ok(None);
     }
