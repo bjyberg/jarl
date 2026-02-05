@@ -63,6 +63,18 @@ mod tests {
             None,
         );
 
+        // Whitespace is ignored
+        expect_lint(
+            "for (x in 1:3) {
+                for (  x    in 1:4) {
+                    x
+                }
+            }",
+            expected_message,
+            "for_loop_dup_index",
+            None,
+        );
+
         // Code between outer and inner loop
         expect_lint(
             "for (i in 1:3) {
