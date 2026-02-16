@@ -331,7 +331,7 @@ Default: `stopping-functions = ["stop", ".Defunct", "abort", "cli_abort",
 
 [lint.unreachable-code]
 # Add a custom function to the list of stopping functions
-extend-skipped-functions = ["my_custom_stop"]
+extend-stopping-functions = ["my_custom_stop"]
 ```
 
 ## Environment variables
