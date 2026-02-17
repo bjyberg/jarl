@@ -1,7 +1,10 @@
 use crate::diagnostic::*;
-use crate::utils::{get_arg_by_name_then_position, get_function_name};
+use crate::utils::{
+    get_arg_by_name_then_position, get_function_name, get_function_namespace_prefix,
+    node_contains_comments,
+};
 use air_r_syntax::*;
-use biome_rowan::AstNode;
+use biome_rowan::{AstNode, AstSeparatedList};
 
 pub struct ExpectMatch;
 
@@ -45,13 +48,15 @@ impl Violation for ExpectMatch {
 }
 
 pub fn expect_match(ast: &RCall) -> anyhow::Result<Option<Diagnostic>> {
+    let range = ast.syntax().text_trimmed_range();
     let function = ast.function()?;
-    let function_name = get_function_name(function);
+    let function_name = get_function_name(function.clone());
     if function_name != "expect_true" {
         return Ok(None);
     }
 
     let args = ast.arguments()?.items();
+    let outer_args_count = args.iter().count();
     let object = unwrap_or_return_none!(get_arg_by_name_then_position(&args, "object", 1));
     let object_value = unwrap_or_return_none!(object.value());
 
@@ -63,15 +68,46 @@ pub fn expect_match(ast: &RCall) -> anyhow::Result<Option<Diagnostic>> {
     }
 
     let grepl_args = grepl_call.arguments()?.items();
-    let pattern_arg = get_arg_by_name_then_position(&grepl_args, "pattern", 1);
-    let x_arg = get_arg_by_name_then_position(&grepl_args, "x", 2);
+    let pattern_arg =
+        unwrap_or_return_none!(get_arg_by_name_then_position(&grepl_args, "pattern", 1));
+    let x_arg = unwrap_or_return_none!(get_arg_by_name_then_position(&grepl_args, "x", 2));
 
-    if pattern_arg.is_none() || x_arg.is_none() {
-        return Ok(None);
+    let pattern_value = unwrap_or_return_none!(pattern_arg.value());
+    let x_value = unwrap_or_return_none!(x_arg.value());
+    let object_text = x_value.to_trimmed_text().to_string();
+    let pattern_text = pattern_value.to_trimmed_text().to_string();
+
+    if outer_args_count > 1 {
+        let diagnostic = Diagnostic::new(ExpectMatch, range, Fix::empty());
+        return Ok(Some(diagnostic));
     }
 
-    let range = ast.syntax().text_trimmed_range();
-    let diagnostic = Diagnostic::new(ExpectMatch, range, Fix::empty());
+    let pattern_range = pattern_arg.syntax().text_trimmed_range();
+    let x_range = x_arg.syntax().text_trimmed_range();
+    let mut extra_args: Vec<String> = Vec::new();
+
+    for arg in grepl_args.iter() {
+        let arg = arg.clone().unwrap();
+        let arg_range = arg.syntax().text_trimmed_range();
+        if arg_range == pattern_range || arg_range == x_range {
+            continue;
+        }
+        extra_args.push(arg.to_trimmed_text().to_string());
+    }
+
+    let namespace_prefix = get_function_namespace_prefix(function).unwrap_or_default();
+    let mut parts = vec![object_text, pattern_text];
+    parts.extend(extra_args);
+    let diagnostic = Diagnostic::new(
+        ExpectMatch,
+        range,
+        Fix {
+            content: format!("{}expect_match({})", namespace_prefix, parts.join(", ")),
+            start: range.start().into(),
+            end: range.end().into(),
+            to_skip: node_contains_comments(ast.syntax()),
+        },
+    );
 
     Ok(Some(diagnostic))
 }
