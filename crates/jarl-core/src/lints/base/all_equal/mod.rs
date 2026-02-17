@@ -25,6 +25,10 @@ mod tests {
             None,
         );
         expect_no_lint("if (A) all.equal(x, y)", "all_equal", None);
+        // Incomplete pipe chains should not trigger
+        expect_no_lint("all.equal(a, b) |> isTRUE()", "all_equal", None);
+        expect_no_lint("all.equal(a, b) |> mean() |> isTRUE()", "all_equal", None);
+        expect_no_lint("x |> isFALSE()", "all_equal", None);
     }
 
     #[test]
@@ -110,6 +114,28 @@ mod tests {
                 ],
                 "all_equal",
             )
+        );
+    }
+
+    #[test]
+    fn test_lint_all_equal_piped() {
+        assert_snapshot!(
+            snapshot_lint("all.equal(a, b) |> \n isFALSE()"),
+            @r"
+        warning: all_equal
+         --> <test>:1:1
+          |
+        1 | / all.equal(a, b) |> 
+        2 | |  isFALSE()
+          | |__________- `isFALSE(all.equal())` always returns `FALSE`
+          |
+          = help: Use `!isTRUE()` to check for differences instead.
+        Found 1 error.
+        "
+        );
+        assert_snapshot!(
+            "multiline_pipe",
+            get_unsafe_fixed_text(vec!["all.equal(a, b) |>\n  isFALSE()"], "all_equal",)
         );
     }
 

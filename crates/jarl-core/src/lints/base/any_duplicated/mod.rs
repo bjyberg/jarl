@@ -17,6 +17,14 @@ mod tests {
         expect_no_lint("any(!duplicated(foo(x)))", "any_duplicated", None);
         expect_no_lint("any(na.rm = TRUE)", "any_duplicated", None);
         expect_no_lint("any()", "any_duplicated", None);
+        // Incomplete pipe chains should not trigger
+        expect_no_lint("x |> any()", "any_duplicated", None);
+        expect_no_lint("x |> duplicated()", "any_duplicated", None);
+        expect_no_lint(
+            "x |> any() |> mean() |> duplicated()",
+            "any_duplicated",
+            None,
+        );
     }
 
     #[test]
@@ -100,6 +108,50 @@ mod tests {
                     "any(duplicated(x))",
                     "any(duplicated(foo(x)))",
                     "any(duplicated(x), na.rm = TRUE)",
+                ],
+                "any_duplicated",
+                None
+            )
+        );
+    }
+
+    #[test]
+    fn test_lint_any_duplicated_piped() {
+        assert_snapshot!(
+            snapshot_lint("duplicated(x) |> \n any()"),
+            @r"
+        warning: any_duplicated
+         --> <test>:1:1
+          |
+        1 | / duplicated(x) |> 
+        2 | |  any()
+          | |______- `any(duplicated(...))` is inefficient.
+          |
+          = help: Use `anyDuplicated(...) > 0` instead.
+        Found 1 error.
+        "
+        );
+        assert_snapshot!(
+            snapshot_lint("x |> \n duplicated() |> \n any()"),
+            @r"
+        warning: any_duplicated
+         --> <test>:1:1
+          |
+        1 | / x |> 
+        2 | |  duplicated() |> 
+        3 | |  any()
+          | |______- `any(duplicated(...))` is inefficient.
+          |
+          = help: Use `anyDuplicated(...) > 0` instead.
+        Found 1 error.
+        "
+        );
+        assert_snapshot!(
+            "multiline_pipe",
+            get_fixed_text(
+                vec![
+                    "duplicated(x) |>\n  any()",
+                    "x |>\n  duplicated() |>\n  any()",
                 ],
                 "any_duplicated",
                 None
