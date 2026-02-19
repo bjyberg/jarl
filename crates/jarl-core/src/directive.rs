@@ -49,8 +49,9 @@ pub enum DirectiveParseResult {
 /// # jarl-ignore-end <rule>
 /// ```
 ///
-/// Also accepts without space after `#`:
+/// Also accepted (e.g. for Quarto/Rmd chunk option style comments):
 /// ```text
+/// #| jarl-ignore <rule>: <reason>
 /// #jarl-ignore <rule>: <reason>
 /// ```
 ///
@@ -58,6 +59,9 @@ pub enum DirectiveParseResult {
 /// - Rule name must be valid (validated against known rules)
 /// - Explanation is mandatory (except for `-end`)
 /// - One rule per directive
+/// - `#| jarl-ignore-chunk` is an Rmd/Qmd-specific chunk suppressor handled at
+///   extraction time. It is treated as `BlanketSuppression` here because it
+///   suppresses all rules without specifying which one.
 ///
 /// Returns:
 /// - `Some(Valid(directive))` - A valid directive was found
@@ -66,8 +70,10 @@ pub enum DirectiveParseResult {
 pub fn parse_comment_directive(text: &str) -> Option<DirectiveParseResult> {
     let text = text.trim_start();
 
-    // Accept both "# jarl-ignore" and "#jarl-ignore"
-    let text = if let Some(rest) = text.strip_prefix("# ") {
+    // Accept "#| ", "# ", or "#" as prefix (the "#|" form is used in Quarto/Rmd chunk options)
+    let text = if let Some(rest) = text.strip_prefix("#| ") {
+        rest
+    } else if let Some(rest) = text.strip_prefix("# ") {
         rest
     } else if let Some(rest) = text.strip_prefix('#') {
         rest
@@ -138,6 +144,29 @@ pub fn parse_comment_directive(text: &str) -> Option<DirectiveParseResult> {
     } else if rest.is_empty() || rest.starts_with(':') {
         // Blanket suppression: `# jarl-ignore`, `#jarl-ignore`, or `# jarl-ignore:`
         Some(DirectiveParseResult::BlanketSuppression)
+    } else if rest == "-chunk" || rest.starts_with("-chunk:") {
+        // `#| jarl-ignore-chunk` or `#| jarl-ignore-chunk:` without a rule name
+        // → blanket suppression (missing rule).
+        Some(DirectiveParseResult::BlanketSuppression)
+    } else if let Some(after_chunk) = rest.strip_prefix("-chunk ") {
+        // `#| jarl-ignore-chunk <rule>: <reason>` — treated exactly like
+        // `# jarl-ignore <rule>: <reason>`.  The `#|` pipe-option style is
+        // common in Quarto/Rmd and "chunk" just signals it's a chunk-option
+        // style suppression comment.
+        if after_chunk.starts_with(':') {
+            Some(DirectiveParseResult::BlanketSuppression)
+        } else {
+            match parse_rule_with_explanation(after_chunk) {
+                RuleParseResult::Valid(rule) => {
+                    Some(DirectiveParseResult::Valid(LintDirective::Ignore(rule)))
+                }
+                RuleParseResult::MissingExplanation => {
+                    Some(DirectiveParseResult::MissingExplanation)
+                }
+                RuleParseResult::InvalidRuleName => Some(DirectiveParseResult::InvalidRuleName),
+                RuleParseResult::Invalid => None,
+            }
+        }
     } else {
         // Not a valid directive (e.g., `# jarl-ignorefoo`)
         None
