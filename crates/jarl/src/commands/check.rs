@@ -103,25 +103,6 @@ pub fn check(args: CheckCommand) -> Result<ExitStatus> {
         groups.entry(key).or_default().push(path);
     }
 
-    // Emit deprecation warnings for old assignment syntax
-    if check_config.assignment.is_some() {
-        eprintln!(
-            "{}: `--assignment` is deprecated. Use `[lint.assignment]` in jarl.toml instead.",
-            "Warning".yellow().bold()
-        );
-    }
-
-    // Check if the deprecated `assignment = "..."` top-level string form was used in TOML
-    for item in resolver.items() {
-        if item.value().linter.deprecated_assignment_syntax {
-            eprintln!(
-                "{}: `assignment = \"...\"` in `[lint]` is deprecated. \
-                 Use `[lint.assignment]` with `operator = \"...\"` instead.",
-                "Warning".yellow().bold()
-            );
-        }
-    }
-
     let mut file_results = Vec::new();
     for (dir_key, group_paths) in groups {
         let settings = dir_key
@@ -188,6 +169,24 @@ pub fn check(args: CheckCommand) -> Result<ExitStatus> {
         args.output_format,
         OutputFormat::Json | OutputFormat::Github
     );
+
+    // Check if the deprecated `--assignment` CLI flag was used
+    if check_config.assignment.is_some() {
+        eprintln!(
+            "{}: `--assignment` is deprecated. Use `[lint.assignment]` in jarl.toml instead.",
+            "Warning".yellow().bold()
+        );
+    }
+    // Check if the deprecated `assignment = "..."` top-level string form was used in TOML
+    for item in resolver.items() {
+        if item.value().linter.deprecated_assignment_syntax {
+            eprintln!(
+                "{}: `assignment = \"...\"` in `[lint]` is deprecated. \
+                     Use `[lint.assignment]` with `operator = \"...\"` instead.",
+                "Warning".yellow().bold()
+            );
+        }
+    }
 
     if !is_structured_format {
         // Emit deprecation warnings for explicitly-used deprecated rules.
