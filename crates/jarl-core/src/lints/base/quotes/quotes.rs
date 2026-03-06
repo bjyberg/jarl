@@ -146,7 +146,7 @@ fn is_malformed_raw_string(ast: &AnyRValue, text: &str) -> bool {
         return false;
     }
     // Check that it is actually raw string (r"hi" vs r "hi" or r \n "hi")
-    return prev.text_trimmed_range().end() == ast.syntax().text_trimmed_range().start();
+    prev.text_trimmed_range().end() == ast.syntax().text_trimmed_range().start()
 }
 
 fn quote_message(preferred_quote: PreferredQuote) -> &'static str {
