@@ -18,7 +18,6 @@ mod jarl;
 mod min_r_version;
 mod no_default_exclude;
 mod output_format;
-mod quotes;
 mod rmd;
 mod rules;
 mod statistics;
